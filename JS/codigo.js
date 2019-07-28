@@ -1,6 +1,10 @@
 $(document).ready(inicia);
 function inicia(){
     $("#btnRegistro").click(registro);
+    $("#contenedorLogin").hide();
+    $(".menu").hide();
+    $("#btnIrLogin").click(mostrarLogin);
+    $("#btnObtenerSaldo").click(obtenerSaldo);
 }
 // FUNCION PARA REGISTRAR USUARIO
 function registro(){
@@ -53,7 +57,58 @@ function login(){
         })
     }
 }
+// VALIDAR Y AGREGAR TARJETA DE CRÉDITO
+function agregaTarjeta(){
+    var tmp;
+    var tarjeta = "323484758745";
+    var idUser = 32;
+    var tokenUser = 'd5a892548e13d436a8e5eb485eab67b9'
+    tmp = vacio(idUser,tarjeta);
+    if(tmp){
+        $.ajax({
+            url: "http://oransh.develotion.com/tarjetas.php",
+            type: "POST",
+            datatype: "JSON",
+            data: {id: idUser, numero: tarjeta},
+            header: {token: tokenUser},
+            success: addTarjeta,
+            error: errorTarjeta
+        })
+    }
+}
+function addTarjeta(response){
+    alert(response.mensaje + "su saldo es de: $"+response.saldo);
+}
+function errorTarjeta(request){
+    if(request.mensaje === "El usuario ya tiene una tarjeta registrada"){
+        //devolvemos el msj en el tag (id) correspondiente 
+        alert(request.mensaje);
+    }
+}
 
+function obtenerSaldo(){
+    var idUser = 32;
+    var tokenUser = "d5a892548e13d436a8e5eb485eab67b9";
+
+    $.ajax({
+        url: "http://http://oransh.develotion.com/tarjetas.php",
+        type: "GET",
+        datatype: "JSON",
+        data: {id: 32},
+        headers: {token: "d5a892548e13d436a8e5eb485eab67b9"},
+        success: mostrarSaldo,
+        error: errorSaldo
+    })
+}
+function mostrarSaldo(response){
+    $("#saldoTarjeta").html("");
+    $("#saldoTarjeta").append("<label>Su saldo actual es:</label>");
+    $("#saldoTarjeta").append("<input type='text' disable value=" + response.saldo + " id='respSaldo'>");
+}
+function errorSaldo(request){
+    alert(request.statusText);
+    
+}
 // FUNCIONES GENERICAS
 function vacio(user,pass){
     if(user === "" || pass === ""){
@@ -61,4 +116,10 @@ function vacio(user,pass){
     }else{
         return false;
     }
+}
+
+//FUNCIÓN MOSTRAR LOGIN
+function mostrarLogin(){
+    $("#contenedorRegistro").hide();
+    $("#contenedorLogin").show();
 }
