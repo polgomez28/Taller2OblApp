@@ -9,7 +9,7 @@
     <title>Obligatorio</title>
 </head>
 <body>
-        <div id="loginWeb" class="login">
+        <div id="contenedorRegistro" class="reglog">
                 
                 <h1>Registro Usuario</h1>
                 <form>
@@ -24,10 +24,26 @@
                     <input type="button" id="btnRegistro" value="Registro">
                     
                     <p id="respRegistro"></p>
-                    <a href="#">Ya cuenta con un usuario activo?</a>
+                    <input type="button" id="btnIrLogin" value="Ir a login">
                     
                 </form>
         </div>
-
+        <div id="contenedorlogin" class="login">
+                
+                <h1>Login Here</h1>
+                <form>
+                    <!-- USERNAME  -->
+                    <label for="username">Usuario</label>
+                    <input type="text" placeholder="Ingrese Usuario" id="txtUserLog">
+                    
+                    <!-- PASSWORD  -->
+                    <label for="password">Contraseña</label>
+                    <input type="password" placeholder="Ingrese contraseña" id="txtPasslog">
+                    
+                    <input id="btnLogin" value="Log In">
+                    <a href="#">Registrarme</a>
+                    
+                </form>
+            </div>
 </body>
 </html>

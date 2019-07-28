@@ -19,6 +19,7 @@ function registro(){
             success: registroOK,
             error: errorReg
         })
+        
     }
     
 }
@@ -30,10 +31,30 @@ function registroOK(response){
     var tokenUser;
     idUser = response.id;
     tokenUser = response.token;
+    $("#respRegistro").html("");
     $("#respRegistro").append("Resgistrado con exito! " + "Su token es: " + response.token);
 }
 
-// FUNCION PARA VALIDAR CAMPOS VACIOS
+function login(){
+    var user = $("#txtUserLog").val();
+    var pass = $("#txtPasslog").val();
+    var tmp;
+    tmp = vacio(user,pass);
+    if(tmp){
+        alert("ERROR: Usuario y/o clave no pueden ser vacios");
+    }else{
+        $.ajax({
+            url: "http://oransh.develotion.com/login.php",
+            type: "POST",
+            datatype: "JSON",
+            data: {usuario: user, password: pass},
+            success: registroOK,
+            error: errorReg
+        })
+    }
+}
+
+// FUNCIONES GENERICAS
 function vacio(user,pass){
     if(user === "" || pass === ""){
         return true;
