@@ -15,6 +15,7 @@ function registro(){
     if(tmp){
         $("#respRegistro").html("ERROR: Usuario y/o clave no pueden ser vacios");
     }else{
+        sessionStorage.setItem("NombreUsu", user);
         $.ajax({
             url: "http://oransh.develotion.com/usuarios.php",
             type: "POST",
@@ -35,8 +36,12 @@ function registroOK(response){
     var tokenUser;
     idUser = response.id;
     tokenUser = response.token;
+    sessionStorage.setItem("idUser", idUser);
+    if(tokenUser !== ""){
+        sessionStorage.setItem("token", tokenUser);
+    }
     $("#respRegistro").html("");
-    $("#respRegistro").append("Resgistrado con exito! " + "Su token es: " + response.token);
+    $("#respRegistro").append("Resgistrado con exito! ");
 }
 function login(){
     var user = $("#txtUserLog").val();
@@ -52,9 +57,12 @@ function login(){
             datatype: "JSON",
             data: {usuario: user, password: pass},
             success: registroOK,
-            error: errorReg
+            error: errorLog
         })
     }
+}
+function errorLog(request){
+    alert(request.responseJSON.mensaje);
 }
 // VALIDAR Y AGREGAR TARJETA DE CRÉDITO
 function agregaTarjeta(){
