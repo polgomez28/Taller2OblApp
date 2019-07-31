@@ -38,7 +38,6 @@ function registroOK(response){
     $("#respRegistro").html("");
     $("#respRegistro").append("Resgistrado con exito! " + "Su token es: " + response.token);
 }
-
 function login(){
     var user = $("#txtUserLog").val();
     var pass = $("#txtPasslog").val();
