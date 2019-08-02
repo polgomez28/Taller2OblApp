@@ -1,5 +1,5 @@
 $(document).ready(inicia);
-function inicia(){
+function inicia() {
     $("#btnRegistro").click(registro);
     $("#contenedorLogin").show();
     $("#contenedorRegistro").hide();
@@ -12,102 +12,98 @@ function inicia(){
     $("#btnAltaTarjeta").click(agregaTarjeta);
 }
 // FUNCION PARA REGISTRAR USUARIO
-function registro(){
+function registro() {
     var user = $("#txtUser").val();
     var pass = $("#txtPassword").val();
     var tmp = "";
-    tmp = vacio(user,pass); // llamamos a función para ver si algun campo viene vacio.
-    if(tmp){
+    tmp = vacio(user, pass); // llamamos a función para ver si algun campo viene vacio.
+    if (tmp) {
         $("#respRegistro").html("ERROR: Usuario y/o clave no pueden ser vacios");
-    }else{
+    } else {
         sessionStorage.setItem("NombreUsu", user);
         $.ajax({
             url: "http://oransh.develotion.com/usuarios.php",
             type: "POST",
             datatype: "JSON",
-            data: {usuario: user, password: pass},
+            data: { usuario: user, password: pass },
             success: registroOK,
             error: errorReg
         })
-        
+
     }
-    
+
 }
-function errorReg(request){
+function errorReg(request) {
     alert(request.responseJSON.mensaje);
 }
-function registroOK(response){
+function registroOK(response) {
     var idUser;
     var tokenUser;
     idUser = response.id;
     tokenUser = response.token;
     sessionStorage.setItem("idUser", idUser);
-    if(tokenUser !== ""){
+    if (tokenUser !== "") {
         sessionStorage.setItem("token", tokenUser);
     }
     $("#respRegistro").html("");
     $("#respRegistro").append("Resgistrado con exito! ");
 }
-function login(){
+function login() {
     var user = $("#txtUserLog").val();
     var pass = $("#txtPasslog").val();
-    var tmp;
-    tmp = vacio(user,pass);
-    if(tmp){
+    sessionStorage.setItem("NombreUsu", user);
+    if (user !== "" || pass !== "") {
         $.ajax({
             url: "http://oransh.develotion.com/login.php",
             type: "POST",
             datatype: "JSON",
-            data: {usuario: user, password: pass},
+            data: { usuario: user, password: pass },
             success: loginOK,
             error: errorLog
         })
-    }else{
+    } else {
         alert("ERROR: Usuario y/o clave no pueden ser vacios");
     }
 }
-function loginOK(response){
-    var token = response.token;
+function loginOK(response) {
+    if (sessionStorage.getItem("token") === "" || response.token !== "") {
+        sessionStorage.setItem("token", response.token);
+        sessionStorage.setItem("idUser", response.id);
+    }
     var idUser = response.id;
     var tokenST = sessionStorage.getItem("token");
     var user = sessionStorage.getItem("NombreUsu");
-
-    if(token === tokenST){
-        $("#respLogin").html("Bienvenida " + user + "!");
-        usuarioLogueado();
-    }else{
-        $("#respLogin").html("Token incorrecto")
-    }
+    $("#respLogin").html("Bienvenida " + user + "!");
+    usuarioLogueado();
 }
-function errorLog(request){
-    
+function errorLog(request) {
     alert(request.responseJSON.mensaje);
 }
 // VALIDAR Y AGREGAR TARJETA DE CRÉDITO
-function agregaTarjeta(){
+function agregaTarjeta() {
     var tarjeta = $("#txtNroTarjeta").val();
-    
-    if(tarjeta!==""){
+
+    if (tarjeta !== "") {
         $.ajax({
             url: "http://oransh.develotion.com/tarjetas.php",
             type: "POST",
             datatype: "JSON",
-            headers: {token: sessionStorage.getItem("token")},
-            data: {id: sessionStorage.getItem("idUser"), numero: tarjeta},
+            headers: { token: sessionStorage.getItem("token") },
+            data: { id: sessionStorage.getItem("idUser"), numero: tarjeta },
             success: addTarjeta,
             error: errorTarjeta
         })
     }
 }
-function addTarjeta(response){
+function addTarjeta(response) {
     var saldo = response;
-    alert(response.mensaje + "su saldo es de: $"+ response.saldo);
+    alert(response.mensaje + "su saldo es de: $" + response.saldo);
 }
-function errorTarjeta(request){
+function errorTarjeta(request) {
     alert(request.responseJSON.mensaje);
 }
 
-function obtenerSaldo(){
+function obtenerSaldo() {
     var idUser = 32;
     var tokenUser = "d5a892548e13d436a8e5eb485eab67b9";
 
@@ -115,39 +111,39 @@ function obtenerSaldo(){
         url: "http://http://oransh.develotion.com/tarjetas.php",
         type: "GET",
         datatype: "JSON",
-        data: {id: 32},
-        headers: {token: "d5a892548e13d436a8e5eb485eab67b9"},
+        data: { id: 32 },
+        headers: { token: "d5a892548e13d436a8e5eb485eab67b9" },
         success: mostrarSaldo,
         error: errorSaldo
     })
 }
-function mostrarSaldo(response){
+function mostrarSaldo(response) {
     $("#saldoTarjeta").html("");
     $("#saldoTarjeta").append("<label>Su saldo actual es:</label>");
     $("#saldoTarjeta").append("<input type='text' disable value=" + response.saldo + " id='respSaldo'>");
 }
-function errorSaldo(request){
+function errorSaldo(request) {
     alert(request.statusText);
-    
+
 }
 // FUNCIONES GENERICAS
-function vacio(user,pass){
-    if(user === "" || pass === ""){
+function vacio(user, pass) {
+    if (user === "" || pass === "") {
         return false;
-    }else{
+    } else {
         return true;
     }
 }
 
 //FUNCIÓN MOSTRAR LOGIN
-function mostrarLogin(){
+function mostrarLogin() {
     $("#contenedorRegistro").hide();
     $("#contenedorLogin").show();
 }
-function irALogin(){
+function irALogin() {
     $("#contenedorRegistro").show();
     $("#contenedorLogin").hide();
 }
-function usuarioLogueado(){
+function usuarioLogueado() {
     $("#saldosTarjetas").show();
 }
