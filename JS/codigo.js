@@ -1,10 +1,15 @@
 $(document).ready(inicia);
 function inicia(){
     $("#btnRegistro").click(registro);
-    $("#contenedorLogin").hide();
+    $("#contenedorLogin").show();
+    $("#contenedorRegistro").hide();
+    $("#btnIrRegistro").click(irALogin);
     $(".menu").hide();
-    $("#btnIrLogin").click(mostrarLogin);
+    $("#saldosTarjetas").hide();
+    $("#btnLogin").click(login);
+    $("#btnVolverLogin").click(mostrarLogin);
     $("#btnObtenerSaldo").click(obtenerSaldo);
+    $("#btnAltaTarjeta").click(agregaTarjeta);
 }
 // FUNCION PARA REGISTRAR USUARIO
 function registro(){
@@ -49,48 +54,57 @@ function login(){
     var tmp;
     tmp = vacio(user,pass);
     if(tmp){
-        alert("ERROR: Usuario y/o clave no pueden ser vacios");
-    }else{
         $.ajax({
             url: "http://oransh.develotion.com/login.php",
             type: "POST",
             datatype: "JSON",
             data: {usuario: user, password: pass},
-            success: registroOK,
+            success: loginOK,
             error: errorLog
         })
+    }else{
+        alert("ERROR: Usuario y/o clave no pueden ser vacios");
+    }
+}
+function loginOK(response){
+    var token = response.token;
+    var idUser = response.id;
+    var tokenST = sessionStorage.getItem("token");
+    var user = sessionStorage.getItem("NombreUsu");
+
+    if(token === tokenST){
+        $("#respLogin").html("Bienvenida " + user + "!");
+        usuarioLogueado();
+    }else{
+        $("#respLogin").html("Token incorrecto")
     }
 }
 function errorLog(request){
+    
     alert(request.responseJSON.mensaje);
 }
 // VALIDAR Y AGREGAR TARJETA DE CRÉDITO
 function agregaTarjeta(){
-    var tmp;
-    var tarjeta = "323484758745";
-    var idUser = 32;
-    var tokenUser = 'd5a892548e13d436a8e5eb485eab67b9'
-    tmp = vacio(idUser,tarjeta);
-    if(tmp){
+    var tarjeta = $("#txtNroTarjeta").val();
+    
+    if(tarjeta!==""){
         $.ajax({
             url: "http://oransh.develotion.com/tarjetas.php",
             type: "POST",
             datatype: "JSON",
-            data: {id: idUser, numero: tarjeta},
-            header: {token: tokenUser},
+            headers: {token: sessionStorage.getItem("token")},
+            data: {id: sessionStorage.getItem("idUser"), numero: tarjeta},
             success: addTarjeta,
             error: errorTarjeta
         })
     }
 }
 function addTarjeta(response){
-    alert(response.mensaje + "su saldo es de: $"+response.saldo);
+    var saldo = response;
+    alert(response.mensaje + "su saldo es de: $"+ response.saldo);
 }
 function errorTarjeta(request){
-    if(request.mensaje === "El usuario ya tiene una tarjeta registrada"){
-        //devolvemos el msj en el tag (id) correspondiente 
-        alert(request.mensaje);
-    }
+    alert(request.responseJSON.mensaje);
 }
 
 function obtenerSaldo(){
@@ -119,9 +133,9 @@ function errorSaldo(request){
 // FUNCIONES GENERICAS
 function vacio(user,pass){
     if(user === "" || pass === ""){
-        return true;
-    }else{
         return false;
+    }else{
+        return true;
     }
 }
 
@@ -129,4 +143,11 @@ function vacio(user,pass){
 function mostrarLogin(){
     $("#contenedorRegistro").hide();
     $("#contenedorLogin").show();
+}
+function irALogin(){
+    $("#contenedorRegistro").show();
+    $("#contenedorLogin").hide();
+}
+function usuarioLogueado(){
+    $("#saldosTarjetas").show();
 }
