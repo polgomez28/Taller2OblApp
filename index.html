@@ -6,6 +6,10 @@
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <script type="text/javascript" src="JS/jquery-3.3.1.min.js"></script>
     <script type="text/javascript" src="JS/codigo.js"></script>
+    <script type="text/javascript" src="JS/leaflet.js"></script>
+    <script type="text/javascript" src="JS/leaflet-routing-machine.js"></script>
+    <link href="css/leaflet-routing-machine.css" rel="stylesheet" type="text/css" />
+    <link href="css/leaflet.css" rel="stylesheet" type="text/css" />
     <title>Obligatorio</title>
 </head>
 <body>
@@ -89,6 +93,20 @@
                     <div id="saldoTarjeta"></div>
                 </fieldset>
             </form>
+            <input type="button" value="Mapa" id="btnMapa">
         </div>
+        <style>
+            body {
+                padding: 0;
+                margin: 0;
+            }
+            html, body, #map {
+                height: 100%;
+                width: 100%;
+            }</style>
+        <div id="map">
+        </div>
+        <script src="https://unpkg.com/leaflet@1.2.0/dist/leaflet.js"></script>
+        <script src="leaflet-routing-machine.js"></script>
 </body>
 </html>

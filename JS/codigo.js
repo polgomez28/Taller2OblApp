@@ -6,6 +6,8 @@ function inicia() {
     $("#btnIrRegistro").click(irALogin);
     $(".menu").hide();
     $("#saldosTarjetas").hide();
+    $("#map").hide();
+    $("#btnMapa").click(mostrarMapa);
     $("#btnLogin").click(login);
     $("#btnVolverLogin").click(mostrarLogin);
     $("#btnObtenerSaldo").click(obtenerSaldo);
@@ -14,7 +16,7 @@ function inicia() {
     $("#btnCargaSaldo").click(actualizarSaldo);
     $("#btnEliminarTarjeta").click(eliminarTarjeta);
 }
-var mayusculas = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "Ñ", "O", "P", "Q", "R", "S", "T", "U", "X", "Y", "Z"];
+
 // FUNCION PARA REGISTRAR USUARIO
 function registro() {
     var user = $("#txtUser").val();
@@ -202,6 +204,24 @@ function errorDel(request){
     var res5 = res4.replace(":", "");
     $("#delTarjeta").html(res5);
 }
+
+// INICIA MAPA
+var pos ={lat: -34.397, lng: -56.18};
+function mostrarMapa(){
+    $("#map").show();
+    navigator.geolocation.getCurrentPosition(mapaNuevo);
+}
+function mapaNuevo(pos){
+    var map = L.map('map').setView([pos.coords.latitude, pos.coords.longitude], 13);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    }).addTo(map);
+
+    L.marker([pos.coords.latitude, pos.coords.longitude]).addTo(map)
+    .bindPopup("<div id='pop'>" + "<input type='button' Onclick='mostrarDestino()' value='Multiple Marquer' id='btnPop'>" + "</div>")
+    //.openPopup();
+}
+
 // FUNCIONES GENERICAS
 function vacio(user, pass) {
     if (user === "" || pass === "") {
