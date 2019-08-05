@@ -10,7 +10,11 @@ function inicia() {
     $("#btnVolverLogin").click(mostrarLogin);
     $("#btnObtenerSaldo").click(obtenerSaldo);
     $("#btnAltaTarjeta").click(agregaTarjeta);
+    $("#btnObtenerSaldo").click(obtenerSaldo);
+    $("#btnCargaSaldo").click(actualizarSaldo);
+    $("#btnEliminarTarjeta").click(eliminarTarjeta);
 }
+var mayusculas = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "Ñ", "O", "P", "Q", "R", "S", "T", "U", "X", "Y", "Z"];
 // FUNCION PARA REGISTRAR USUARIO
 function registro() {
     var user = $("#txtUser").val();
@@ -79,52 +83,124 @@ function loginOK(response) {
 function errorLog(request) {
     alert(request.responseJSON.mensaje);
 }
-// VALIDAR Y AGREGAR TARJETA DE CRÉDITO
+// TARJETA DE CRÉDITO
+
 function agregaTarjeta() {
     var tarjeta = $("#txtNroTarjeta").val();
-
+    var token = sessionStorage.getItem("token");
+    var idUser = sessionStorage.getItem("idUser");
     if (tarjeta !== "") {
         $.ajax({
             url: "http://oransh.develotion.com/tarjetas.php",
             type: "POST",
             datatype: "JSON",
-            headers: { token: sessionStorage.getItem("token") },
-            data: { id: sessionStorage.getItem("idUser"), numero: tarjeta },
+            headers: { token: token },
+            data: { id: idUser, numero: tarjeta },
             success: addTarjeta,
             error: errorTarjeta
         })
+    }else{
+        $("#respAltaTarjeta").html("Error, debe ingresar un nro de tarjeta");
     }
 }
 function addTarjeta(response) {
-    var saldo = response;
-    alert(response.mensaje + "su saldo es de: $" + response.saldo);
+        alert(response.mensaje + "su saldo es de: $" + response.saldo);
+        $("#respAltaTarjeta").html("su saldo es de: $" + response.saldo);
 }
 function errorTarjeta(request) {
-    alert(request.responseJSON.mensaje);
+    if(request.responseJSON.mensaje === "El usuario ya tiene una tarjeta registrada"){
+        $("#respAltaTarjeta").html(request.responseJSON.mensaje);
+    }
+    //alert(request.responseJSON.mensaje);
+    //$("#respAltaTarjeta").html(request.responseJSON.mensaje);
 }
-
+function actualizarSaldo(){
+    var saldo = parseInt($("#txtSaldoTarjeta").val());
+    if(!isNaN(saldo) && saldo > 0 && saldo % 100 === 0){
+        $.ajax({
+            url: "http://oransh.develotion.com/tarjetas.php",
+            type: "PUT",
+            datatype: "JSON",
+            headers: {token: sessionStorage.getItem("token")},
+            data: {id: sessionStorage.getItem("idUser"),
+            saldo: saldo},
+            success: actSaldoOK,
+            error: falloSaldo
+        })
+    }else{
+        $("#saldoTarjeta").html("");
+        $("#saldoTarjeta").append("Error: valor inválido" + "<br>");
+        $("#saldoTarjeta").append("Debe ser múltiplo de 100");
+    }
+}
+function actSaldoOK(response){
+    $("#saldoTarjeta").html("");
+    $("#saldoTarjeta").append(response.mensaje + "<br>" + "Saldo actual: " + response.saldo);
+}
+function falloSaldo(request){
+    //var resp = request;
+    $("#saldoTarjeta").html(request.mensaje);
+}
 function obtenerSaldo() {
-    var idUser = 32;
-    var tokenUser = "d5a892548e13d436a8e5eb485eab67b9";
-
-    $.ajax({
-        url: "http://http://oransh.develotion.com/tarjetas.php",
-        type: "GET",
-        datatype: "JSON",
-        data: { id: 32 },
-        headers: { token: "d5a892548e13d436a8e5eb485eab67b9" },
-        success: mostrarSaldo,
-        error: errorSaldo
-    })
+    var token = sessionStorage.getItem("token");
+    var idUser = sessionStorage.getItem("idUser");
+    if(token!=="" && idUser!==""){
+        $.ajax({
+            url: "http://oransh.develotion.com/tarjetas.php",
+            type: "GET",
+            datatype: "JSON",
+            headers: { token: token},
+            data: { id: idUser},
+            success: mostrarSaldo,
+            error: errorSaldo
+        })
+    }else{
+        $("#obtenerSaldo").html("Error al consultar saldo, intente más tarde.");
+    }
 }
 function mostrarSaldo(response) {
-    $("#saldoTarjeta").html("");
-    $("#saldoTarjeta").append("<label>Su saldo actual es:</label>");
-    $("#saldoTarjeta").append("<input type='text' disable value=" + response.saldo + " id='respSaldo'>");
+    $("#obtenerSaldo").html("");
+    $("#obtenerSaldo").append("<label>Su saldo actual es:</label>");
+    $("#obtenerSaldo").append("<input type='text' disable value=" + response.saldo + " id='respSaldo'>");
 }
 function errorSaldo(request) {
     alert(request.statusText);
-
+}
+function eliminarTarjeta(){
+    var id = true, id2 = false;
+    $("#delTarjeta").html("");
+    $("#delTarjeta").append("<label><h3>Advertencia:</h3> Si elimina su tarjeta no podra utilizar el servicio</label>" + "<br>");
+    $("#delTarjeta").append("<input type='button' id='confirmar' value='Eliminar' onclick='eliminar(" + id + ")'" + ">");
+    $("#delTarjeta").append("<input type='button' id='denegar' value='Cancelar' onclick='eliminar(" + id2 + ")'" + ">");
+}
+function eliminar(bandera){
+    if(bandera){
+        $.ajax({
+            url: "http://oransh.develotion.com/tarjetas.php",
+            type: "DELETE",
+            datatype: "JSON",
+            headers: {token: sessionStorage.getItem("token")},
+            data: {id: sessionStorage.getItem("idUser")},
+            success: delOK,
+            error: errorDel
+        })
+    }else{
+        $("#delTarjeta").html("");
+    }
+}
+function delOK(response){
+    // Pendiente: iniciar con la verificación de si esta utilizando monopatin
+    $("#delTarjeta").html("");
+    $("#delTarjeta").append(response.mensaje);
+}
+function errorDel(request){
+    var msj = request.responseText;
+    var res = msj.replace("mensaje", "");
+    var res2 = res.replace("{", "");
+    var res3 = res2.replace("}", "");
+    var res4 = res3.replace(/['"]+/g, '');
+    var res5 = res4.replace(":", "");
+    $("#delTarjeta").html(res5);
 }
 // FUNCIONES GENERICAS
 function vacio(user, pass) {
@@ -134,7 +210,6 @@ function vacio(user, pass) {
         return true;
     }
 }
-
 //FUNCIÓN MOSTRAR LOGIN
 function mostrarLogin() {
     $("#contenedorRegistro").hide();
@@ -146,4 +221,6 @@ function irALogin() {
 }
 function usuarioLogueado() {
     $("#saldosTarjetas").show();
+    $("#contenedorLogin").hide();
+    $("#contenedorRegistro").hide();
 }
