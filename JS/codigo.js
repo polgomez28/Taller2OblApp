@@ -248,11 +248,9 @@ function ubicarMon(pos) {
         if (contador < 5) {
             lat2 = tmp.latitud;
             lon2 = tmp.longitud;
-
             Number.prototype.toRad = function () {
                 return this * Math.PI / 180;
             }
-
             //var lat2 = 42.741; 
             //var lon2 = -71.3161; 
             var lat1 = pos.coords.latitude;
@@ -271,11 +269,24 @@ function ubicarMon(pos) {
             var d = R * c;
 
             alert(d);
+            if(contador === 0){
+                var monpatinComparativo = {}, bandera = true;
+                distancia = d;
+                monpatinComparativo = tmp;
+                contador++
+            }
         }
-        if (d > distancia && contador < 5) {
-            topCinco[contador] = tmp;
-            contador++
-            distancia = d;
+        if (d <= distancia && contador < 5 && contador > 0) {
+            if(contador === 1 && distancia <= d && bandera === true){ 
+                topCinco[0] = monpatinComparativo;
+                //contador--
+                bandera = false;
+            }else{
+                topCinco[contador] = tmp;
+                contador++
+                distancia = d;
+            }
+            
         }
 
     }
