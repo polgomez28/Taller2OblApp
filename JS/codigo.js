@@ -15,8 +15,12 @@ function inicia() {
     $("#btnObtenerSaldo").click(obtenerSaldo);
     $("#btnCargaSaldo").click(actualizarSaldo);
     $("#btnEliminarTarjeta").click(eliminarTarjeta);
+    $("#btnMonopatines").click(monopatinAdd);
 }
-
+var listaMono = [];
+var posicionOrigen;
+var posicionDestino;
+var pos = { lat: -34.397, lng: -56.18 };
 // FUNCION PARA REGISTRAR USUARIO
 function registro() {
     var user = $("#txtUser").val();
@@ -101,62 +105,64 @@ function agregaTarjeta() {
             success: addTarjeta,
             error: errorTarjeta
         })
-    }else{
+    } else {
         $("#respAltaTarjeta").html("Error, debe ingresar un nro de tarjeta");
     }
 }
 function addTarjeta(response) {
-        alert(response.mensaje + "su saldo es de: $" + response.saldo);
-        $("#respAltaTarjeta").html("su saldo es de: $" + response.saldo);
+    alert(response.mensaje + "su saldo es de: $" + response.saldo);
+    $("#respAltaTarjeta").html("su saldo es de: $" + response.saldo);
 }
 function errorTarjeta(request) {
-    if(request.responseJSON.mensaje === "El usuario ya tiene una tarjeta registrada"){
+    if (request.responseJSON.mensaje === "El usuario ya tiene una tarjeta registrada") {
         $("#respAltaTarjeta").html(request.responseJSON.mensaje);
     }
     //alert(request.responseJSON.mensaje);
     //$("#respAltaTarjeta").html(request.responseJSON.mensaje);
 }
-function actualizarSaldo(){
+function actualizarSaldo() {
     var saldo = parseInt($("#txtSaldoTarjeta").val());
-    if(!isNaN(saldo) && saldo > 0 && saldo % 100 === 0){
+    if (!isNaN(saldo) && saldo > 0 && saldo % 100 === 0) {
         $.ajax({
             url: "http://oransh.develotion.com/tarjetas.php",
             type: "PUT",
             datatype: "JSON",
-            headers: {token: sessionStorage.getItem("token")},
-            data: {id: sessionStorage.getItem("idUser"),
-            saldo: saldo},
+            headers: { token: sessionStorage.getItem("token") },
+            data: {
+                id: sessionStorage.getItem("idUser"),
+                saldo: saldo
+            },
             success: actSaldoOK,
             error: falloSaldo
         })
-    }else{
+    } else {
         $("#saldoTarjeta").html("");
         $("#saldoTarjeta").append("Error: valor inválido" + "<br>");
         $("#saldoTarjeta").append("Debe ser múltiplo de 100");
     }
 }
-function actSaldoOK(response){
+function actSaldoOK(response) {
     $("#saldoTarjeta").html("");
     $("#saldoTarjeta").append(response.mensaje + "<br>" + "Saldo actual: " + response.saldo);
 }
-function falloSaldo(request){
+function falloSaldo(request) {
     //var resp = request;
     $("#saldoTarjeta").html(request.mensaje);
 }
 function obtenerSaldo() {
     var token = sessionStorage.getItem("token");
     var idUser = sessionStorage.getItem("idUser");
-    if(token!=="" && idUser!==""){
+    if (token !== "" && idUser !== "") {
         $.ajax({
             url: "http://oransh.develotion.com/tarjetas.php",
             type: "GET",
             datatype: "JSON",
-            headers: { token: token},
-            data: { id: idUser},
+            headers: { token: token },
+            data: { id: idUser },
             success: mostrarSaldo,
             error: errorSaldo
         })
-    }else{
+    } else {
         $("#obtenerSaldo").html("Error al consultar saldo, intente más tarde.");
     }
 }
@@ -168,34 +174,34 @@ function mostrarSaldo(response) {
 function errorSaldo(request) {
     alert(request.statusText);
 }
-function eliminarTarjeta(){
+function eliminarTarjeta() {
     var id = true, id2 = false;
     $("#delTarjeta").html("");
     $("#delTarjeta").append("<label><h3>Advertencia:</h3> Si elimina su tarjeta no podra utilizar el servicio</label>" + "<br>");
     $("#delTarjeta").append("<input type='button' id='confirmar' value='Eliminar' onclick='eliminar(" + id + ")'" + ">");
     $("#delTarjeta").append("<input type='button' id='denegar' value='Cancelar' onclick='eliminar(" + id2 + ")'" + ">");
 }
-function eliminar(bandera){
-    if(bandera){
+function eliminar(bandera) {
+    if (bandera) {
         $.ajax({
             url: "http://oransh.develotion.com/tarjetas.php",
             type: "DELETE",
             datatype: "JSON",
-            headers: {token: sessionStorage.getItem("token")},
-            data: {id: sessionStorage.getItem("idUser")},
+            headers: { token: sessionStorage.getItem("token") },
+            data: { id: sessionStorage.getItem("idUser") },
             success: delOK,
             error: errorDel
         })
-    }else{
+    } else {
         $("#delTarjeta").html("");
     }
 }
-function delOK(response){
+function delOK(response) {
     // Pendiente: iniciar con la verificación de si esta utilizando monopatin
     $("#delTarjeta").html("");
     $("#delTarjeta").append(response.mensaje);
 }
-function errorDel(request){
+function errorDel(request) {
     var msj = request.responseText;
     var res = msj.replace("mensaje", "");
     var res2 = res.replace("{", "");
@@ -204,24 +210,127 @@ function errorDel(request){
     var res5 = res4.replace(":", "");
     $("#delTarjeta").html(res5);
 }
+// llamada a funcion para traer array monopatines.
+function monopatinAdd() {
+    if (sessionStorage.getItem("NombreUsu") !== "") {
+        $.ajax({
+            url: "http://oransh.develotion.com/monopatines.php",
+            type: "GET",
+            datatype: "JSON",
+            headers: { token: sessionStorage.getItem("token") },
+            success: monopatinesOK,
+            error: errorMonopatines
+        })
+    }
+}
+function monopatinesOK(response) {
+    var tmpmonopatines = response.monopatines;
+    var monopatines = {};
 
+    var contador = 0;
+    for (var i = 0; i < tmpmonopatines.length; i++) {
+        monopatines = tmpmonopatines[i];
+        if (monopatines["bateria"] !== 0) {
+            listaMono[contador] = monopatines;
+            contador++
+        }
+    }
+}
+function errorMonopatines(request) {
+    alert(request.responseText);
+}
+
+function ubicarMon(pos) {
+
+    var tmp = {}, contador = 0, distancia = 0, topCinco = [];
+    for (i = 0; i < listaMono.length; i++) {
+        tmp = listaMono[i];
+        if (contador < 5) {
+            lat2 = tmp.latitud;
+            lon2 = tmp.longitud;
+
+            Number.prototype.toRad = function () {
+                return this * Math.PI / 180;
+            }
+
+            //var lat2 = 42.741; 
+            //var lon2 = -71.3161; 
+            var lat1 = pos.coords.latitude;
+            var lon1 = pos.coords.longitude;
+
+            var R = 6371; // km 
+            //has a problem with the .toRad() method below.
+            var x1 = lat2 - lat1;
+            var dLat = x1.toRad();
+            var x2 = lon2 - lon1;
+            var dLon = x2.toRad();
+            var a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                Math.cos(lat1.toRad()) * Math.cos(lat2.toRad()) *
+                Math.sin(dLon / 2) * Math.sin(dLon / 2);
+            var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+            var d = R * c;
+
+            alert(d);
+        }
+        if (d > distancia && contador < 5) {
+            topCinco[contador] = tmp;
+            contador++
+            distancia = d;
+        }
+
+    }
+}
 // INICIA MAPA
-var pos ={lat: -34.397, lng: -56.18};
-function mostrarMapa(){
+
+function mostrarMapa() {
     $("#map").show();
     navigator.geolocation.getCurrentPosition(mapaNuevo);
 }
-function mapaNuevo(pos){
+function mapaNuevo(pos) {
+    ubicarMon(pos);
+
     var map = L.map('map').setView([pos.coords.latitude, pos.coords.longitude], 13);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
     }).addTo(map);
 
+    //OBTENEMOS LONGITUD Y  LATITUD POR MONOPATINES
+
+
+
+    //CALCULO DE DISTANCIAS FÓRMULA 
+
+
+
     L.marker([pos.coords.latitude, pos.coords.longitude]).addTo(map)
-    .bindPopup("<div id='pop'>" + "<input type='button' Onclick='mostrarDestino()' value='Multiple Marquer' id='btnPop'>" + "</div>")
-    //.openPopup();
+        .bindPopup("<div id='pop'>" + "<input type='button' Onclick='mostrarDestino()' value='Multiple Marquer' id='btnPop'>" + "</div>")
+
 }
 
+/*
+function mostrarMapa(pos){
+for(var i = 0; i < lugares.length; i++){
+var popUpCotent = "<div id = 'miPopup'>" + 
+				  "<p> Titulo: " + 
+				  lugares[i].nombre +
+				  "</p>" +
+				  "<input type = 'button' value = 'Ver Ruta' onclick = 'mostrarRuta(latitud,longitud)'/></div>";
+
+L.marker([lugares[i].latitud, lugares[i].longitud]).addTo(map)
+.bindpopup(popUpCotent);
+}
+}
+
+function mostrarRuta(latitud, longitud){
+	map.setRoutes(null);
+	L.Routing.control({
+		waypoints: [
+			L.latLng(posicionOrigen.latitud, positionOrigen.longitud),
+			L.latLng(latitude, longitude)
+		]
+	}).addTo(map);
+}
+*/
 // FUNCIONES GENERICAS
 function vacio(user, pass) {
     if (user === "" || pass === "") {
