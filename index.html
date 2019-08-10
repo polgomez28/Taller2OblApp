@@ -5,106 +5,200 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <script type="text/javascript" src="JS/jquery-3.3.1.min.js"></script>
+    <script type="text/javascript" src="JS/onsenui.min.js"></script>
     <script type="text/javascript" src="JS/codigo.js"></script>
     <script type="text/javascript" src="JS/leaflet.js"></script>
     <link href="css/leaflet.css" rel="stylesheet" type="text/css" />
+    <link href="css/onsen-css-components.min.css" rel="stylesheet" type="text/css" />
+    <link href="css/onsenui.min.css" rel="stylesheet" type="text/css" />
     <title>Obligatorio</title>
 </head>
 <body>
-    <div class="menu">
-        <ul>
-            <li><a href="#" class="inicio">Inicio</a></li>
-            <li><a href="#" class="miCuenta">Mi cuenta</a></li>
-            <li><a href="#" class="historial">Historial</a></li>
-            <li><a href="#" class="login">Login</a></li>
-        </ul>
-    </div>
-        <div id="contenedorRegistro" class="reglog">
-            <form>
-                <fieldset>
-                    <legend>Registro de Usuario</legend>
-                    <!-- USERNAME  -->
-                    <label for="username">Usuario</label>
-                    <input type="text" placeholder="Ingrese Usuario" id="txtUser">
-            
-                    <!-- PASSWORD  -->
-                    <label for="password">Contraseña</label>
-                    <input type="text" placeholder="Ingrese contraseña" id="txtPassword">
-            
-                    <input type="button" id="btnRegistro" value="Registro">
-            
-                    <p id="respRegistro"></p>
-                    <input type="button" id="btnVolverLogin" value="Ir a login">
-                </fieldset>
-            </form>
-        </div>
-        <div id="contenedorLogin" class="login">
-            <form>
-                <fieldset>
-                    <legend>Login</legend>
-                    <!-- USERNAME  -->
-                    <label for="username">Usuario</label>
-                    <input type="text" placeholder="Ingrese Usuario" id="txtUserLog">
-            
-                    <!-- PASSWORD  -->
-                    <label for="password">Contraseña</label>
-                    <input type="password" placeholder="Ingrese contraseña" id="txtPasslog">
-            
-                    <input id="btnLogin" value="Log In" type="button">
-                    <input type="button" value="Registrarme" id="btnIrRegistro">
-                    <div id="respLogin"></div>
-                </fieldset>
-            </form>
-        </div>
-        <div id="saldosTarjetas">
-            <form>
-                <fieldset>
-                    <legend>Ingrese tarjeta</legend>
-                    <label for="nroTarjeta">Nro tarjeta</label>
-                    <input type="text" placeholder="Nro Tarjeta" id="txtNroTarjeta">
-                    <input type="button" name="" id="btnAltaTarjeta" value="Agregar">
-                    <div id="respAltaTarjeta"></div>
-                </fieldset>
-            </form>
-            <form>
-                <fieldset>
-                    <legend>Eliminar tarjeta</legend>
-                    <br>
-                    <br>
-                    <input type="button" id="btnEliminarTarjeta" value="Eliminar">
-                    <div id="delTarjeta"></div>
-                </fieldset>
-            </form>
-            <form>
-                <fieldset>
-                    <legend>Consulta de saldo</legend>
-                    <input type="button" name="" id="btnObtenerSaldo" value="Consultar">
-                    <br>
-                    <div id="obtenerSaldo"></div>
-                </fieldset>
-                <fieldset>
-                    <legend>Recargue su tarjeta</legend>
-                    <label for="saldoT">Ingrese saldo</label>
-                    <input type="text" placeholder="Ingrese saldo" id="txtSaldoTarjeta">
-                    <input type="button" name="" id="btnCargaSaldo" value="Saldo">
-                    <br>
-                    <div id="saldoTarjeta"></div>
-                </fieldset>
-            </form>
-            <input type="button" value="Mapa" id="btnMapa">
-            <input type="button" value="Monopatines" id="btnMonopatines">
-        </div>
-        <style>
-            body {
-                padding: 0;
-                margin: 0;
-            }
-            html, body, #map {
-                height: 100%;
-                width: 100%;
-            }</style>
-        <div id="map">
-        </div>
-        <script src="https://unpkg.com/leaflet@1.2.0/dist/leaflet.js"></script>
+    <ons-splitter>
+        <ons-splitter-side id="menu" side="left" width="220px" collapse swipeable>
+            <ons-page>
+                <ons-list>
+                    <ons-list-item onclick="fn.load('login.html')" tappable>
+                        Login
+                    </ons-list-item>
+                    <ons-list-item onclick="fn.load('registro.html')" tappable>
+                        Registro
+                    </ons-list-item>
+                    <ons-list-item onclick="fn.load('mapa.html')" tappable>
+                        Mapa
+                    </ons-list-item>
+                    <ons-list-item onclick="fn.load('cuenta.html')" tappable>
+                        Cuenta
+                    </ons-list-item>
+                    <ons-list-item onclick="fn.load('saldo.html')" tappable>
+                        Saldo
+                    </ons-list-item>
+                    <ons-list-item onclick="fn.load('historial.html')" tappable>
+                        Historial
+                    </ons-list-item>
+                    <ons-list-item style="display: none;" id="btnlogout" onclick="logout()" tappable>
+                            Log out
+                    </ons-list-item>
+                </ons-list>
+            </ons-page>
+        </ons-splitter-side>
+        <ons-splitter-content id="content" page="login.html"></ons-splitter-content>
+    </ons-splitter>
+    <template id="login.html">
+        <ons-page>
+            <ons-toolbar>
+                <div class="left">
+                    <ons-toolbar-button onclick="fn.open()">
+                        <ons-icon icon="md-menu"></ons-icon>
+                    </ons-toolbar-button>
+                </div>
+                <div class="center">
+                    Login
+                </div>
+            </ons-toolbar>
+            <ons-page>
+                <div id="contLog" style="text-align: center; margin-top: 30px;">
+                    <p>
+                        <ons-input id="txtUserLog" modifier="underbar" placeholder="Username" float></ons-input>
+                    </p>
+                    <p>
+                        <ons-input id="txtPasslog" modifier="underbar" type="password" placeholder="Password" float>
+                        </ons-input>
+                    </p>
+                    <p style="margin-top: 30px;">
+                        <ons-button onclick="login()">Sign in</ons-button>
+                    </p>
+                </div>
+                <div id="txtInfo" class="info"></div>
+            </ons-page>
+        </ons-page>
+    </template>
+    
+    <template id="registro.html">
+        <ons-page>
+            <ons-toolbar>
+                <div class="left">
+                    <ons-toolbar-button onclick="fn.open()">
+                        <ons-icon icon="md-menu"></ons-icon>
+                    </ons-toolbar-button>
+                </div>
+                <div class="center">
+                    Registro
+                </div>
+            </ons-toolbar>
+            <ons-page>
+                <div style="text-align: center; margin-top: 30px;">
+                    <p>
+                        <ons-input id="txtUser" modifier="underbar" placeholder="Username" float></ons-input>
+                    </p>
+                    <p>
+                        <ons-input id="txtPassword" modifier="underbar" type="password" placeholder="Password" float>
+                        </ons-input>
+                    </p>
+                    <p style="margin-top: 30px;">
+                        <ons-button onclick="registro()">Registrarme</ons-button>
+                    </p>
+                    <div id="respRegistro"></div>
+                </div>
+            </ons-page>
+        </ons-page>
+    </template>
+    <template id="mapa.html">
+        <ons-page>
+            <ons-toolbar>
+                <div class="left">
+                    <ons-toolbar-button onclick="fn.open()">
+                        <ons-icon icon="md-menu"></ons-icon>
+                    </ons-toolbar-button>
+                </div>
+                <div class="center">
+                    Mapa
+                </div>
+            </ons-toolbar>
+            <style>
+                    body {
+                        padding: 0;
+                        margin: 0;
+                    }
+                    html, body, #map {
+                        height: 100%;
+                        width: 100%;
+                    }
+            </style>
+            <div id="map"></div>
+        </ons-page>
+    </template>
+    <template id="cuenta.html">
+        <ons-page>
+            <ons-toolbar>
+                <div class="left">
+                    <ons-toolbar-button onclick="fn.open()">
+                        <ons-icon icon="md-menu"></ons-icon>
+                    </ons-toolbar-button>
+                </div>
+                <div class="center">
+                    Cuenta
+                </div>
+            </ons-toolbar>
+            <div style="text-align: center; margin-top: 30px;">
+                <p>Ingresar tarjeta al sistema</p>
+                <ons-input id="txtNroTarjeta" modifier="underbar" placeholder="Ingrese Tarjeta" float></ons-input>
+                <p></p>
+                <p style="margin-top: 30px;">
+                    <ons-button onclick="agregaTarjeta()">Cargar</ons-button>
+                </p>
+                <p>Eliminar tarjeta del sistema</p>
+                <p></p>
+                <p style="margin-top: 30px;">
+                        <ons-button onclick="eliminarTarjeta()">Eliminar</ons-button>
+                </p>
+                <div id="delTarjeta"></div>
+            </div>
+
+        </ons-page>
+    </template>
+    <template id="saldo.html">
+        <ons-page>
+            <ons-toolbar>
+                <div class="left">
+                    <ons-toolbar-button onclick="fn.open()">
+                        <ons-icon icon="md-menu"></ons-icon>
+                    </ons-toolbar-button>
+                </div>
+                <div class="center">
+                    Saldo
+                </div>
+            </ons-toolbar>
+            <div style="text-align: center; margin-top: 30px;">
+                <p style="margin-top: 30px;">
+                    <ons-button onclick="obtenerSaldo()">Saldo</ons-button>
+                </p>
+                <div id="obtenerSaldo"></div>
+                <p></p>
+                <div id="contCargaSaldo">
+                    <p>
+                        <ons-input id="txtSaldoTarjeta" modifier="underbar" placeholder="Saldo" float></ons-input>
+                    </p>
+                    <p style="margin-top: 30px;">
+                        <ons-button onclick="actualizarSaldo()">Cargar</ons-button>
+                    </p>
+                </div>
+            </div>
+        </ons-page>
+    </template>
+    <template id="historial.html">
+        <ons-page>
+            <ons-toolbar>
+                <div class="left">
+                    <ons-toolbar-button onclick="fn.open()">
+                        <ons-icon icon="md-menu"></ons-icon>
+                    </ons-toolbar-button>
+                </div>
+                <div class="center">
+                    Historial
+                </div>
+            </ons-toolbar>
+        </ons-page>
+    </template>
 </body>
 </html>

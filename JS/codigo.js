@@ -1,4 +1,39 @@
 $(document).ready(inicia);
+
+window.fn = {};
+
+window.fn.open = function() {
+  var menu = document.getElementById('menu');
+  menu.open();
+};
+
+window.fn.load = function(page) {
+  var content = document.getElementById('content');
+  var menu = document.getElementById('menu');
+  if(page === "mapa.html" && sessionStorage.getItem("NombreUsu") !== null){
+    navigator.geolocation.getCurrentPosition(mapaNuevo);
+  }else if(page === "mapa.html" && sessionStorage.getItem("NombreUsu") === null){
+      ons.notification.alert("Error: Debe estar logueado");
+    content.load("login.html")
+    .then(menu.close.bind(menu));
+  }else if(page === "cuenta.html" && sessionStorage.getItem("NombreUsu") === null){
+    ons.notification.alert("Error: Debe estar logueado");
+    content.load("login.html")
+    .then(menu.close.bind(menu));
+  }else if(page === "saldo.html" && sessionStorage.getItem("NombreUsu") === null){
+    ons.notification.alert("Error: Debe estar logueado");
+    content.load("login.html")
+    .then(menu.close.bind(menu));
+  }else if(page === "historial.html" && sessionStorage.getItem("NombreUsu") === null){
+    ons.notification.alert("Error: Debe estar logueado");
+    content.load("login.html")
+    .then(menu.close.bind(menu));
+  }
+  content.load(page)
+    .then(menu.close.bind(menu));
+  
+};
+
 function inicia() {
     $("#btnRegistro").click(registro);
     $("#contenedorLogin").show();
@@ -17,7 +52,7 @@ function inicia() {
     $("#btnEliminarTarjeta").click(eliminarTarjeta);
     $("#btnMonopatines").click(monopatinAdd);
 }
-var listaMono = [];
+var listaMono = [], topCinco = [];
 var posicionOrigen;
 var posicionDestino;
 var pos = { lat: -34.397, lng: -56.18 };
@@ -28,8 +63,6 @@ function registro() {
     var tmp = "";
     tmp = vacio(user, pass); // llamamos a función para ver si algun campo viene vacio.
     if (tmp) {
-        $("#respRegistro").html("ERROR: Usuario y/o clave no pueden ser vacios");
-    } else {
         sessionStorage.setItem("NombreUsu", user);
         $.ajax({
             url: "http://oransh.develotion.com/usuarios.php",
@@ -39,12 +72,13 @@ function registro() {
             success: registroOK,
             error: errorReg
         })
-
+    } else {
+        $("#respRegistro").html("ERROR: Usuario y/o clave no pueden ser vacios");
     }
 
 }
 function errorReg(request) {
-    alert(request.responseJSON.mensaje);
+    ons.notification.alert(request.responseJSON.mensaje);
 }
 function registroOK(response) {
     var idUser;
@@ -57,6 +91,7 @@ function registroOK(response) {
     }
     $("#respRegistro").html("");
     $("#respRegistro").append("Resgistrado con exito! ");
+    $("#respRegistro").append("Ya puedes ir al login ");
 }
 function login() {
     var user = $("#txtUserLog").val();
@@ -83,11 +118,18 @@ function loginOK(response) {
     var idUser = response.id;
     var tokenST = sessionStorage.getItem("token");
     var user = sessionStorage.getItem("NombreUsu");
-    $("#respLogin").html("Bienvenida " + user + "!");
-    usuarioLogueado();
+    ons.notification.alert("Bienvenida " + user + "!");
+    document.getElementById("btnlogout").style.display="block"
+    
 }
 function errorLog(request) {
-    alert(request.responseJSON.mensaje);
+    ons.notification.alert(request.responseJSON.mensaje);
+}
+function logout(){
+    sessionStorage.setItem("NombreUsu", null);
+    sessionStorage.setItem("token", null);
+    sessionStorage.setItem("idUser", null);
+    ons.notification.alert("Te esperamos ponto! ;)");
 }
 // TARJETA DE CRÉDITO
 
@@ -142,8 +184,9 @@ function actualizarSaldo() {
     }
 }
 function actSaldoOK(response) {
-    $("#saldoTarjeta").html("");
-    $("#saldoTarjeta").append(response.mensaje + "<br>" + "Saldo actual: " + response.saldo);
+    //$("#saldoTarjeta").html("");
+    ons.notification.alert(response.mensaje + "<br>" + "Saldo actual: " + response.saldo);
+    //$("#saldoTarjeta").append(response.mensaje + "<br>" + "Saldo actual: " + response.saldo);
 }
 function falloSaldo(request) {
     //var resp = request;
@@ -242,22 +285,21 @@ function errorMonopatines(request) {
 
 function ubicarMon(pos) {
 
-    var tmp = {}, contador = 0, distancia = 0, topCinco = [];
+    var tmp = {}, contador = 0, distancia = 0;
     for (i = 0; i < listaMono.length; i++) {
         tmp = listaMono[i];
-        if (contador < 5) {
+        
             lat2 = tmp.latitud;
             lon2 = tmp.longitud;
             Number.prototype.toRad = function () {
                 return this * Math.PI / 180;
             }
-            //var lat2 = 42.741; 
-            //var lon2 = -71.3161; 
+            
             var lat1 = pos.coords.latitude;
             var lon1 = pos.coords.longitude;
 
             var R = 6371; // km 
-            //has a problem with the .toRad() method below.
+
             var x1 = lat2 - lat1;
             var dLat = x1.toRad();
             var x2 = lon2 - lon1;
@@ -268,25 +310,10 @@ function ubicarMon(pos) {
             var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
             var d = R * c;
 
-            alert(d);
-            if(contador === 0){
-                var monpatinComparativo = {}, bandera = true;
-                distancia = d;
-                monpatinComparativo = tmp;
-                contador++
-            }
-        }
-        if (d <= distancia && contador < 5 && contador > 0) {
-            if(contador === 1 && distancia <= d && bandera === true){ 
-                topCinco[0] = monpatinComparativo;
-                //contador--
-                bandera = false;
-            }else{
+        if (contador === 0){distancia = d;}
+        if (d <= distancia && contador < 5) {
                 topCinco[contador] = tmp;
-                contador++
-                distancia = d;
-            }
-            
+                contador++ 
         }
 
     }
@@ -294,7 +321,7 @@ function ubicarMon(pos) {
 // INICIA MAPA
 
 function mostrarMapa() {
-    $("#map").show();
+    //$("#map").show();
     navigator.geolocation.getCurrentPosition(mapaNuevo);
 }
 function mapaNuevo(pos) {
@@ -305,16 +332,21 @@ function mapaNuevo(pos) {
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
     }).addTo(map);
 
+    L.marker([pos.coords.latitude, pos.coords.longitude]).addTo(map)
+        .bindPopup("Estas aquí!")
+    
     //OBTENEMOS LONGITUD Y  LATITUD POR MONOPATINES
 
-
-
-    //CALCULO DE DISTANCIAS FÓRMULA 
-
-
-
-    L.marker([pos.coords.latitude, pos.coords.longitude]).addTo(map)
-        .bindPopup("<div id='pop'>" + "<input type='button' Onclick='mostrarDestino()' value='Multiple Marquer' id='btnPop'>" + "</div>")
+    for(var i=0;i<topCinco.length;i++){
+        tmpTop = topCinco[i];
+        var latitud = tmpTop["latitud"];
+        var longitud = tmpTop["longitud"];
+        var codigo = tmpTop["codigo"];
+        L.marker([latitud, longitud]).addTo(map)
+        .bindPopup("Monopatin código: " + codigo)
+    }
+    //MARCADOR DE MI POSICIÓN
+    
 
 }
 
