@@ -11,7 +11,8 @@ window.fn.load = function(page) {
   var content = document.getElementById('content');
   var menu = document.getElementById('menu');
   if(page === "mapa.html" && sessionStorage.getItem("NombreUsu") !== null){
-    navigator.geolocation.getCurrentPosition(mapaNuevo);
+    monopatinAdd();
+    navigator.geolocation.getCurrentPosition(mostrarMapa);
   }else if(page === "mapa.html" && sessionStorage.getItem("NombreUsu") === null){
       ons.notification.alert("Error: Debe estar logueado");
     content.load("login.html")
@@ -52,7 +53,7 @@ function inicia() {
     $("#btnEliminarTarjeta").click(eliminarTarjeta);
     $("#btnMonopatines").click(monopatinAdd);
 }
-var listaMono = [], topCinco = [];
+var listaMono = [], topCinco = [], monActivos = {};
 var posicionOrigen;
 var posicionDestino;
 var pos = { lat: -34.397, lng: -56.18 };
@@ -148,16 +149,16 @@ function agregaTarjeta() {
             error: errorTarjeta
         })
     } else {
-        $("#respAltaTarjeta").html("Error, debe ingresar un nro de tarjeta");
+        ons.notification.alert("Error, debe ingresar un nro de tarjeta");
     }
 }
 function addTarjeta(response) {
-    alert(response.mensaje + "su saldo es de: $" + response.saldo);
-    $("#respAltaTarjeta").html("su saldo es de: $" + response.saldo);
+    ons.notification.alert(response.mensaje + "su saldo es de: $" + response.saldo);
 }
 function errorTarjeta(request) {
     if (request.responseJSON.mensaje === "El usuario ya tiene una tarjeta registrada") {
-        $("#respAltaTarjeta").html(request.responseJSON.mensaje);
+        ons.notification.alert(request.responseJSON.mensaje);
+        //$("#respAltaTarjeta").html(request.responseJSON.mensaje);
     }
     //alert(request.responseJSON.mensaje);
     //$("#respAltaTarjeta").html(request.responseJSON.mensaje);
@@ -221,8 +222,10 @@ function eliminarTarjeta() {
     var id = true, id2 = false;
     $("#delTarjeta").html("");
     $("#delTarjeta").append("<label><h3>Advertencia:</h3> Si elimina su tarjeta no podra utilizar el servicio</label>" + "<br>");
-    $("#delTarjeta").append("<input type='button' id='confirmar' value='Eliminar' onclick='eliminar(" + id + ")'" + ">");
-    $("#delTarjeta").append("<input type='button' id='denegar' value='Cancelar' onclick='eliminar(" + id2 + ")'" + ">");
+    $("#delTarjeta").append("<p style='margin-top: 30px;'>");
+    $("#delTarjeta").append("<ons-button onclick='eliminar(" + id + ")'" + ">" + "Eliminar" + "</ons-button>" + "<p></p>");
+    $("#delTarjeta").append("<ons-button onclick='eliminar(" + id2 + ")'" + ">" + "Cancelar" + "</ons-button>");
+    $("#delTarjeta").append("</p>");
 }
 function eliminar(bandera) {
     if (bandera) {
@@ -318,6 +321,8 @@ function ubicarMon(pos) {
 
     }
 }
+// DESBLOQUEO MONOPATIN
+
 // INICIA MAPA
 
 function mostrarMapa() {
@@ -336,44 +341,53 @@ function mapaNuevo(pos) {
         .bindPopup("Estas aquí!")
     
     //OBTENEMOS LONGITUD Y  LATITUD POR MONOPATINES
-
     for(var i=0;i<topCinco.length;i++){
         tmpTop = topCinco[i];
         var latitud = tmpTop["latitud"];
         var longitud = tmpTop["longitud"];
         var codigo = tmpTop["codigo"];
+        var popup = "<p>Monopatin: " + codigo + "</p>" +
+                    "<ons-button id='btnDesbloquear' onclick='desbloquear(" + i + ")'>" +
+                    "Desbloquear" + "</ons-button>" +
+                    "<ons-button id='btnBloquear' onclick='bloquear(" + i + ")' style='display: none; background: red;''>" +
+                    "Bloquear" + "</ons-button>"
         L.marker([latitud, longitud]).addTo(map)
-        .bindPopup("Monopatin código: " + codigo)
+        .bindPopup(popup);
     }
-    //MARCADOR DE MI POSICIÓN
     
-
+}
+function desbloquear(codigo){
+    var fecha = new Date();
+    var horas = fecha.getHours();
+    var minutos = fecha.getMinutes();
+    var segundos = fecha.getSeconds();
+    var dia = fecha.getDate();
+    var mes = fecha.getMonth();
+    var ano = fecha.getFullYear();
+    var tmp = {};
+    tmp = topCinco[codigo];
+    monActivos[0] = tmp;
+    monActivos[1] = horas + ":" + minutos + ":" + segundos;
+    ons.notification.alert("Se activo monopatín: " + tmp["codigo"] + " Hora de inicio: " + horas + ":" + minutos + ":" + segundos);
+    
+    document.getElementById("btnBloquear").style.display="block";
+    document.getElementById("btnDesbloquear").style.display="none";
+}
+function bloquear(id){
+    var fecha = new Date();
+    var horas = fecha.getHours();
+    var minutos = fecha.getMinutes();
+    var segundos = fecha.getSeconds();
+    var dia = fecha.getDate();
+    var mes = fecha.getMonth();
+    var ano = fecha.getFullYear();
+    tmp = topCinco[id];
+    monActivos[2] = horas + ":" + minutos + ":" + segundos;
+    ons.notification.alert("Se bloqueo el monopatin: " + tmp["codigo"]);
+    document.getElementById("btnBloquear").style.display="none";
+    document.getElementById("btnDesbloquear").style.display="block";
 }
 
-/*
-function mostrarMapa(pos){
-for(var i = 0; i < lugares.length; i++){
-var popUpCotent = "<div id = 'miPopup'>" + 
-				  "<p> Titulo: " + 
-				  lugares[i].nombre +
-				  "</p>" +
-				  "<input type = 'button' value = 'Ver Ruta' onclick = 'mostrarRuta(latitud,longitud)'/></div>";
-
-L.marker([lugares[i].latitud, lugares[i].longitud]).addTo(map)
-.bindpopup(popUpCotent);
-}
-}
-
-function mostrarRuta(latitud, longitud){
-	map.setRoutes(null);
-	L.Routing.control({
-		waypoints: [
-			L.latLng(posicionOrigen.latitud, positionOrigen.longitud),
-			L.latLng(latitude, longitude)
-		]
-	}).addTo(map);
-}
-*/
 // FUNCIONES GENERICAS
 function vacio(user, pass) {
     if (user === "" || pass === "") {
