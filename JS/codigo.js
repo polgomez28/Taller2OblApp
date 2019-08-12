@@ -1,18 +1,39 @@
-$(document).ready(inicia);
+var db;
+$(document).ready(function(){
+    db=openDatabase("MiBase",1.0,"MonopatinesORT", 1024);
+    db.transaction(function (tx){
+    tx.executeSql("Create table if not exists historial (Usuario string, Fecha string, HoraInicio string, HoraFin string, Duracion integer, Costo integer)");
+});
+$("#btnRegistro").click(registro);
+    $("#contenedorLogin").show();
+    $("#contenedorRegistro").hide();
+    $("#btnIrRegistro").click(irALogin);
+    $(".menu").hide();
+    $("#saldosTarjetas").hide();
+    $("#map").hide();
+    $("#btnMapa").click(mostrarMapa);
+    $("#btnLogin").click(login);
+    $("#btnVolverLogin").click(mostrarLogin);
+    $("#btnObtenerSaldo").click(obtenerSaldo);
+    $("#btnAltaTarjeta").click(agregaTarjeta);
+    $("#btnObtenerSaldo").click(obtenerSaldo);
+    $("#btnCargaSaldo").click(actualizarSaldo);
+    $("#btnEliminarTarjeta").click(eliminarTarjeta);
+    $("#btnMonopatines").click(monopatinAdd);
+});
 
 window.fn = {};
-
 window.fn.open = function() {
   var menu = document.getElementById('menu');
   menu.open();
 };
-
 window.fn.load = function(page) {
   var content = document.getElementById('content');
   var menu = document.getElementById('menu');
-  if(page === "mapa.html" && sessionStorage.getItem("NombreUsu") !== null){
+  if(page === "mapa.html" && sessionStorage.getItem("NombreUsu") !== null && activoUser){
     monopatinAdd();
-    navigator.geolocation.getCurrentPosition(mostrarMapa);
+    window.setTimeout(navigator.geolocation.getCurrentPosition(mostrarMapa), 5000);
+    
   }else if(page === "mapa.html" && sessionStorage.getItem("NombreUsu") === null){
       ons.notification.alert("Error: Debe estar logueado");
     content.load("login.html")
@@ -35,26 +56,8 @@ window.fn.load = function(page) {
   
 };
 
-function inicia() {
-    $("#btnRegistro").click(registro);
-    $("#contenedorLogin").show();
-    $("#contenedorRegistro").hide();
-    $("#btnIrRegistro").click(irALogin);
-    $(".menu").hide();
-    $("#saldosTarjetas").hide();
-    $("#map").hide();
-    $("#btnMapa").click(mostrarMapa);
-    $("#btnLogin").click(login);
-    $("#btnVolverLogin").click(mostrarLogin);
-    $("#btnObtenerSaldo").click(obtenerSaldo);
-    $("#btnAltaTarjeta").click(agregaTarjeta);
-    $("#btnObtenerSaldo").click(obtenerSaldo);
-    $("#btnCargaSaldo").click(actualizarSaldo);
-    $("#btnEliminarTarjeta").click(eliminarTarjeta);
-    $("#btnMonopatines").click(monopatinAdd);
-}
 var listaMono = [], topCinco = [], monActivos = {};
-var posicionOrigen, timeStart, timeStop, activoUser = true;
+var posicionOrigen, timeStart, timeStop, activoUser = false, FechaHistorico, HoraInicio, HoraFin;
 var posicionDestino;
 var pos = { lat: -34.397, lng: -56.18 };
 // FUNCION PARA REGISTRAR USUARIO
@@ -120,6 +123,7 @@ function loginOK(response) {
     var tokenST = sessionStorage.getItem("token");
     var user = sessionStorage.getItem("NombreUsu");
     ons.notification.alert("Bienvenida " + user + "!");
+    activoUser = true;
     document.getElementById("btnlogout").style.display="block"
     
 }
@@ -131,9 +135,9 @@ function logout(){
     sessionStorage.setItem("token", null);
     sessionStorage.setItem("idUser", null);
     ons.notification.alert("Te esperamos ponto! ;)");
+    activoUser = false;
 }
 // TARJETA DE CRÉDITO
-
 function agregaTarjeta() {
     var tarjeta = $("#txtNroTarjeta").val();
     var token = sessionStorage.getItem("token");
@@ -164,8 +168,9 @@ function errorTarjeta(request) {
     //$("#respAltaTarjeta").html(request.responseJSON.mensaje);
 }
 function actualizarSaldo(costo,resta) {
-    if(costo===""){
-        var saldo = parseInt($("#txtSaldoTarjeta").val());
+    var saldo;
+    if(costo === undefined){
+        saldo = parseInt($("#txtSaldoTarjeta").val());
     }else{
         saldo = costo;
     }
@@ -197,24 +202,20 @@ function actualizarSaldo(costo,resta) {
                 error: falloSaldo
             })
         } else {
-            $("#saldoTarjeta").html("");
-            $("#saldoTarjeta").append("Error: valor inválido" + "<br>");
-            $("#saldoTarjeta").append("Debe ser múltiplo de 100");
+            ons.notification.alert("Error: Debe ingresar valor múltiplo de 100");
         }
     }
-    
-    
 }
 function actSaldoOK(response) {
     if(response.saldo < 0){
         ons.notification.alert("Inhabilitado por saldo negativo: " + response.saldo);
         activoUser = false;
     }else{
-        ons.notification.alert(response.mensaje + "<br>" + "Saldo actual: " + response.saldo);
+        ons.notification.alert("Saldo actual: " + response.saldo);
+        if(response.saldo > 0){activoUser = true;}
     }
 }
 function falloSaldo(request) {
-    //var resp = request;
     $("#saldoTarjeta").html(request.mensaje);
 }
 function obtenerSaldo() {
@@ -296,7 +297,6 @@ function monopatinAdd() {
 function monopatinesOK(response) {
     var tmpmonopatines = response.monopatines;
     var monopatines = {};
-
     var contador = 0;
     for (var i = 0; i < tmpmonopatines.length; i++) {
         monopatines = tmpmonopatines[i];
@@ -350,12 +350,10 @@ function ubicarMon(pos) {
 // INICIA MAPA
 
 function mostrarMapa() {
-    //$("#map").show();
     navigator.geolocation.getCurrentPosition(mapaNuevo);
 }
 function mapaNuevo(pos) {
     ubicarMon(pos);
-
     var map = L.map('map').setView([pos.coords.latitude, pos.coords.longitude], 13);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
@@ -399,6 +397,15 @@ function desbloquear(codigo){
 }
 function verificarTarjeta(response){
         if(activoUser){
+            var dia, mes, ano, tmp = new Date();
+            dia = tmp.getDate();
+            mes = tmp.getMonth();
+            ano = tmp.getFullYear();
+            FechaHistorico = dia + "/" + (mes + 1) + "/" + ano;
+            hora = tmp.getHours();
+            minutos = tmp.getMinutes();
+            segundos = tmp.getSeconds();
+            HoraInicio = hora + ":" + minutos + ":" + segundos;
             timeStart = new Date();
             timeStart = timeStart.getTime();
             document.getElementById("btnBloquear").style.display="block";
@@ -412,20 +419,33 @@ function errorCard(request){
     ons.notification.alert(request.responseJSON.mensaje);
 }
 function bloquear(id){
+    var hora, minutos, segundos, valorCosto, tmp = new Date();
+    hora = tmp.getHours();
+    minutos = tmp.getMinutes();
+    segundos = tmp.getSeconds();
+    HoraFin = hora + ":" + minutos + ":" + segundos;
     timeStop = new Date();
     var timeReal, costo, resta = true;
     timeStop = timeStop.getTime();
     tmp = topCinco[id];
     timeReal = ((timeStop - timeStart)/1000);
     costo = (timeReal * 2) + 46;
+    valorCosto = costo;
     document.getElementById("btnBloquear").style.display="none";
     document.getElementById("btnDesbloquear").style.display="block";
     ons.notification.alert("Costo del viaje: $" + costo);
     costo = costo*(-1);
     actualizarSaldo(costo,resta);
-
+    var usuario = sessionStorage.getItem("NombreUsu");
+    // INSERT EN BASE SQLWEB
+    db.transaction(function(tx){
+        tx.executeSql("INSERT INTO Historial (Usuario, Fecha, HoraInicio, HoraFin, Duracion, Costo) values(?,?,?,?,?,?)", [usuario, FechaHistorico, HoraInicio, HoraFin, timeReal, valorCosto])},
+        function (err)
+        {
+            alert(err.message);
+        }
+        );
 }
-
 // FUNCIONES GENERICAS
 function vacio(user, pass) {
     if (user === "" || pass === "") {
