@@ -54,7 +54,7 @@ function inicia() {
     $("#btnMonopatines").click(monopatinAdd);
 }
 var listaMono = [], topCinco = [], monActivos = {};
-var posicionOrigen;
+var posicionOrigen, timeStart, timeStop, activoUser = true;
 var posicionDestino;
 var pos = { lat: -34.397, lng: -56.18 };
 // FUNCION PARA REGISTRAR USUARIO
@@ -163,31 +163,55 @@ function errorTarjeta(request) {
     //alert(request.responseJSON.mensaje);
     //$("#respAltaTarjeta").html(request.responseJSON.mensaje);
 }
-function actualizarSaldo() {
-    var saldo = parseInt($("#txtSaldoTarjeta").val());
-    if (!isNaN(saldo) && saldo > 0 && saldo % 100 === 0) {
-        $.ajax({
-            url: "http://oransh.develotion.com/tarjetas.php",
-            type: "PUT",
-            datatype: "JSON",
-            headers: { token: sessionStorage.getItem("token") },
-            data: {
-                id: sessionStorage.getItem("idUser"),
-                saldo: saldo
-            },
-            success: actSaldoOK,
-            error: falloSaldo
-        })
-    } else {
-        $("#saldoTarjeta").html("");
-        $("#saldoTarjeta").append("Error: valor inválido" + "<br>");
-        $("#saldoTarjeta").append("Debe ser múltiplo de 100");
+function actualizarSaldo(costo,resta) {
+    if(costo===""){
+        var saldo = parseInt($("#txtSaldoTarjeta").val());
+    }else{
+        saldo = costo;
     }
+    if(resta){
+            $.ajax({
+                url: "http://oransh.develotion.com/tarjetas.php",
+                type: "PUT",
+                datatype: "JSON",
+                headers: { token: sessionStorage.getItem("token") },
+                data: {
+                    id: sessionStorage.getItem("idUser"),
+                    saldo: saldo
+                },
+                success: actSaldoOK,
+                error: falloSaldo
+            })
+    }else{
+        if (!isNaN(saldo) && saldo % 100 === 0) {
+            $.ajax({
+                url: "http://oransh.develotion.com/tarjetas.php",
+                type: "PUT",
+                datatype: "JSON",
+                headers: { token: sessionStorage.getItem("token") },
+                data: {
+                    id: sessionStorage.getItem("idUser"),
+                    saldo: saldo
+                },
+                success: actSaldoOK,
+                error: falloSaldo
+            })
+        } else {
+            $("#saldoTarjeta").html("");
+            $("#saldoTarjeta").append("Error: valor inválido" + "<br>");
+            $("#saldoTarjeta").append("Debe ser múltiplo de 100");
+        }
+    }
+    
+    
 }
 function actSaldoOK(response) {
-    //$("#saldoTarjeta").html("");
-    ons.notification.alert(response.mensaje + "<br>" + "Saldo actual: " + response.saldo);
-    //$("#saldoTarjeta").append(response.mensaje + "<br>" + "Saldo actual: " + response.saldo);
+    if(response.saldo < 0){
+        ons.notification.alert("Inhabilitado por saldo negativo: " + response.saldo);
+        activoUser = false;
+    }else{
+        ons.notification.alert(response.mensaje + "<br>" + "Saldo actual: " + response.saldo);
+    }
 }
 function falloSaldo(request) {
     //var resp = request;
@@ -216,7 +240,7 @@ function mostrarSaldo(response) {
     $("#obtenerSaldo").append("<input type='text' disable value=" + response.saldo + " id='respSaldo'>");
 }
 function errorSaldo(request) {
-    alert(request.statusText);
+    ons.notification.alert(request.responseJSON.mensaje);
 }
 function eliminarTarjeta() {
     var id = true, id2 = false;
@@ -357,35 +381,49 @@ function mapaNuevo(pos) {
     
 }
 function desbloquear(codigo){
-    var fecha = new Date();
-    var horas = fecha.getHours();
-    var minutos = fecha.getMinutes();
-    var segundos = fecha.getSeconds();
-    var dia = fecha.getDate();
-    var mes = fecha.getMonth();
-    var ano = fecha.getFullYear();
-    var tmp = {};
-    tmp = topCinco[codigo];
-    monActivos[0] = tmp;
-    monActivos[1] = horas + ":" + minutos + ":" + segundos;
-    ons.notification.alert("Se activo monopatín: " + tmp["codigo"] + " Hora de inicio: " + horas + ":" + minutos + ":" + segundos);
-    
-    document.getElementById("btnBloquear").style.display="block";
-    document.getElementById("btnDesbloquear").style.display="none";
+    var token = sessionStorage.getItem("token");
+    var idUser = sessionStorage.getItem("idUser");
+    if (token !== "" && idUser !== "") {
+        $.ajax({
+            url: "http://oransh.develotion.com/tarjetas.php",
+            type: "GET",
+            datatype: "JSON",
+            headers: { token: token },
+            data: { id: idUser },
+            success: verificarTarjeta,
+            error: errorCard
+        })
+    }else{
+        ons.notification.alert("Error: Debes estar logueado");
+    }
+}
+function verificarTarjeta(response){
+        if(activoUser){
+            timeStart = new Date();
+            timeStart = timeStart.getTime();
+            document.getElementById("btnBloquear").style.display="block";
+            document.getElementById("btnDesbloquear").style.display="none";    
+        }else{
+            ons.notification.alert("Usuario no habilitado, debe cargar saldo");
+        }
+        
+}
+function errorCard(request){
+    ons.notification.alert(request.responseJSON.mensaje);
 }
 function bloquear(id){
-    var fecha = new Date();
-    var horas = fecha.getHours();
-    var minutos = fecha.getMinutes();
-    var segundos = fecha.getSeconds();
-    var dia = fecha.getDate();
-    var mes = fecha.getMonth();
-    var ano = fecha.getFullYear();
+    timeStop = new Date();
+    var timeReal, costo, resta = true;
+    timeStop = timeStop.getTime();
     tmp = topCinco[id];
-    monActivos[2] = horas + ":" + minutos + ":" + segundos;
-    ons.notification.alert("Se bloqueo el monopatin: " + tmp["codigo"]);
+    timeReal = ((timeStop - timeStart)/1000);
+    costo = (timeReal * 2) + 46;
     document.getElementById("btnBloquear").style.display="none";
     document.getElementById("btnDesbloquear").style.display="block";
+    ons.notification.alert("Costo del viaje: $" + costo);
+    costo = costo*(-1);
+    actualizarSaldo(costo,resta);
+
 }
 
 // FUNCIONES GENERICAS
