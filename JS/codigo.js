@@ -34,21 +34,20 @@ window.fn.load = function(page) {
     monopatinAdd();
     window.setTimeout(navigator.geolocation.getCurrentPosition(mostrarMapa), 5000);
     
-  }else if(page === "mapa.html" && sessionStorage.getItem("NombreUsu") === null){
-      ons.notification.alert("Error: Debe estar logueado");
+  }else if(page === "mapa.html" && sessionStorage.getItem("NombreUsu") === null && activoUser){
+    
     content.load("login.html")
     .then(menu.close.bind(menu));
-  }else if(page === "cuenta.html" && sessionStorage.getItem("NombreUsu") === null){
-    ons.notification.alert("Error: Debe estar logueado");
+  }else if(page === "cuenta.html" && sessionStorage.getItem("NombreUsu") === null && activoUser){
+    
     content.load("login.html")
     .then(menu.close.bind(menu));
-  }else if(page === "saldo.html" && sessionStorage.getItem("NombreUsu") === null){
-    ons.notification.alert("Error: Debe estar logueado");
+  }else if(page === "saldo.html" && sessionStorage.getItem("NombreUsu") === null && activoUser){
+    
     content.load("login.html")
     .then(menu.close.bind(menu));
-  }else if(page === "historial.html" && sessionStorage.getItem("NombreUsu") === null){
-    ons.notification.alert("Error: Debe estar logueado");
-    content.load("login.html")
+  }else if(page === "historial.html" && sessionStorage.getItem("NombreUsu") === null && activoUser){
+    content.load(page)
     .then(menu.close.bind(menu));
   }
   content.load(page)
@@ -445,6 +444,30 @@ function bloquear(id){
             alert(err.message);
         }
         );
+}
+function mostrarHistorial(){
+    var usuario = sessionStorage.getItem("NombreUsu");
+    db.transaction(function(tx){
+    tx.executeSql('select * from historial where Usuario = ?', [usuario],function(tx,results){  
+         if(results.rows.length > 0){
+             $("#historial").html("");
+           for(var i=0; i<results.rows.length;i++){    
+            $("#historial").append('<ons-list>');
+            $("#historial").append('<ons-list-header>' + "Fecha" + "</ons-list-header>");
+            $("#historial").append('<ons-list-item>' + results.rows[i].Fecha + "</ons-list-item>");
+            $("#historial").append('<ons-list-header>' + "Hora inicio" + "</ons-list-header>");
+            $("#historial").append('<ons-list-item>' + results.rows[i].HoraInicio + "</ons-list-item>");
+            $("#historial").append('<ons-list-header>' + "Hora fin" + "</ons-list-header>");
+            $("#historial").append('<ons-list-item>' + results.rows[i].HoraFin + "</ons-list-item>");
+            $("#historial").append('<ons-list-header>' + "Duración(segundos)" + "</ons-list-header>");
+            $("#historial").append('<ons-list-item>' + results.rows[i].Duracion + "</ons-list-item>");
+            $("#historial").append('<ons-list-header>' + "Costo" + "</ons-list-header>");
+            $("#historial").append('<ons-list-item>' + results.rows[i].Costo + "</ons-list-item>");
+            $("#historial").append('</ons-list>');
+           }
+         }
+           });
+        });
 }
 // FUNCIONES GENERICAS
 function vacio(user, pass) {
