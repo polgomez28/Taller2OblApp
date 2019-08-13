@@ -245,7 +245,7 @@ function mostrarSaldo(response) {
         ons.notification.alert("Inhabilitado por saldo negativo" + response.saldo);
     }else{
         $("#obtenerSaldo").html("");
-        $("#obtenerSaldo").append("<label>Su saldo actual es:</label>");
+        $("#obtenerSaldo").append("<label>Su saldo actual es: </label>");
         $("#obtenerSaldo").append("<input type='text' disable value=" + response.saldo + " id='respSaldo'>");
         activoUser = true;
     }
@@ -462,12 +462,13 @@ function bloquear(id){
     segundos = tmp.getSeconds();
     HoraFin = hora + ":" + minutos + ":" + segundos;
     timeStop = new Date();
-    var timeReal, costo, resta = true, activoMonopatin = false;
+    var timeReal, costo, resta = true;
     timeStop = timeStop.getTime();
     tmp = topCinco[id];
     timeReal = ((timeStop - timeStart)/1000);
     costo = (timeReal * 2) + 46;
     valorCosto = costo;
+    activoMonopatin = false;
     document.getElementById("btnBloquear").style.display="none";
     document.getElementById("btnDesbloquear").style.display="block";
     ons.notification.alert("Costo del viaje: $" + costo);
