@@ -31,7 +31,7 @@
 
     <platform name="android">
         <allow-intent href="market:*" />
-        <splash src="splash.png"/>
+        <splash src="splash.jpg"/>
         <icon src="icon.png"/>
      </platform>
     
