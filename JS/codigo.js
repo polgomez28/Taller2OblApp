@@ -34,18 +34,6 @@ window.fn.load = function(page) {
     monopatinAdd();
     window.setTimeout(navigator.geolocation.getCurrentPosition(mostrarMapa), 5000);
     
-  }else if(page === "mapa.html" && sessionStorage.getItem("NombreUsu") === null && activoUser){
-    
-    content.load("login.html")
-    .then(menu.close.bind(menu));
-  }else if(page === "cuenta.html" && sessionStorage.getItem("NombreUsu") === null && activoUser){
-    
-    content.load("login.html")
-    .then(menu.close.bind(menu));
-  }else if(page === "saldo.html" && sessionStorage.getItem("NombreUsu") === null && activoUser){
-    
-    content.load("login.html")
-    .then(menu.close.bind(menu));
   }else if(page === "historial.html" && sessionStorage.getItem("NombreUsu") === null && activoUser){
     content.load(page)
     .then(menu.close.bind(menu));
@@ -56,7 +44,7 @@ window.fn.load = function(page) {
 };
 
 var listaMono = [], topCinco = [], monActivos = {};
-var posicionOrigen, timeStart, timeStop, activoUser = false, FechaHistorico, HoraInicio, HoraFin;
+var posicionOrigen, timeStart, timeStop, activoUser = false, FechaHistorico, HoraInicio, HoraFin, activoMonopatin = false;
 var posicionDestino;
 var pos = { lat: -34.397, lng: -56.18 };
 // FUNCION PARA REGISTRAR USUARIO
@@ -122,9 +110,8 @@ function loginOK(response) {
     var tokenST = sessionStorage.getItem("token");
     var user = sessionStorage.getItem("NombreUsu");
     ons.notification.alert("Bienvenida " + user + "!");
-    activoUser = true;
     document.getElementById("btnlogout").style.display="block"
-    
+    obtenerSaldo();
 }
 function errorLog(request) {
     ons.notification.alert(request.responseJSON.mensaje);
@@ -137,10 +124,27 @@ function logout(){
     activoUser = false;
 }
 // TARJETA DE CRÉDITO
+function mostrarLogoCard(){
+    var card = $("#txtNroTarjeta").val();
+    var amex = card.substr(0,1);
+    var master = card.substr(0,1);
+    var visa = card.substr(0,1);
+    if(amex === "4"){
+        $("#card").html("");
+        $("#card").append("<img src='/img/american-express.png' alt=''>");
+    }else if(master === "5"){
+        $("#card").html("");
+        $("#card").append("<img src='/img/mastercard.png' alt=''>");
+    }else if(visa === "6"){
+        $("#card").html("");
+        $("#card").append("<img src='/img/visa.png' alt=''>");
+    }
+}
 function agregaTarjeta() {
     var tarjeta = $("#txtNroTarjeta").val();
     var token = sessionStorage.getItem("token");
     var idUser = sessionStorage.getItem("idUser");
+
     if (tarjeta !== "") {
         $.ajax({
             url: "http://oransh.develotion.com/tarjetas.php",
@@ -156,15 +160,16 @@ function agregaTarjeta() {
     }
 }
 function addTarjeta(response) {
+    if(response.saldo >= 0){
+        activoUser = true;
+    }
     ons.notification.alert(response.mensaje + "su saldo es de: $" + response.saldo);
+
 }
 function errorTarjeta(request) {
     if (request.responseJSON.mensaje === "El usuario ya tiene una tarjeta registrada") {
         ons.notification.alert(request.responseJSON.mensaje);
-        //$("#respAltaTarjeta").html(request.responseJSON.mensaje);
     }
-    //alert(request.responseJSON.mensaje);
-    //$("#respAltaTarjeta").html(request.responseJSON.mensaje);
 }
 function actualizarSaldo(costo,resta) {
     var saldo;
@@ -210,8 +215,8 @@ function actSaldoOK(response) {
         ons.notification.alert("Inhabilitado por saldo negativo: " + response.saldo);
         activoUser = false;
     }else{
-        ons.notification.alert("Saldo actual: " + response.saldo);
-        if(response.saldo > 0){activoUser = true;}
+        $("#respCargaSaldo").html("Saldo actual: " + response.saldo);
+        if(response.saldo >= 0){activoUser = true;}
     }
 }
 function falloSaldo(request) {
@@ -235,12 +240,23 @@ function obtenerSaldo() {
     }
 }
 function mostrarSaldo(response) {
-    $("#obtenerSaldo").html("");
-    $("#obtenerSaldo").append("<label>Su saldo actual es:</label>");
-    $("#obtenerSaldo").append("<input type='text' disable value=" + response.saldo + " id='respSaldo'>");
+    if(response.saldo < 0){
+        activoUser = false;
+        ons.notification.alert("Inhabilitado por saldo negativo" + response.saldo);
+    }else{
+        $("#obtenerSaldo").html("");
+        $("#obtenerSaldo").append("<label>Su saldo actual es:</label>");
+        $("#obtenerSaldo").append("<input type='text' disable value=" + response.saldo + " id='respSaldo'>");
+        activoUser = true;
+    }
 }
 function errorSaldo(request) {
-    ons.notification.alert(request.responseJSON.mensaje);
+    if(request.responseJSON.mensaje === "No hay tarjetas registradas para este usuario"){
+        ons.notification.alert("Opciones limitadas hasta que cargue una tarjeta");
+        activoUser = false;
+    }else{
+        ons.notification.alert(request.responseJSON.mensaje);
+    }
 }
 function eliminarTarjeta() {
     var id = true, id2 = false;
@@ -252,7 +268,7 @@ function eliminarTarjeta() {
     $("#delTarjeta").append("</p>");
 }
 function eliminar(bandera) {
-    if (bandera) {
+    if (bandera && activoMonopatin === false) {
         $.ajax({
             url: "http://oransh.develotion.com/tarjetas.php",
             type: "DELETE",
@@ -263,7 +279,7 @@ function eliminar(bandera) {
             error: errorDel
         })
     } else {
-        $("#delTarjeta").html("");
+        $("#delTarjeta").html("Error: Monopatin en actividad, termine su viaje primero");
     }
 }
 function delOK(response) {
@@ -407,6 +423,7 @@ function verificarTarjeta(response){
             HoraInicio = hora + ":" + minutos + ":" + segundos;
             timeStart = new Date();
             timeStart = timeStart.getTime();
+            activoMonopatin = true;
             document.getElementById("btnBloquear").style.display="block";
             document.getElementById("btnDesbloquear").style.display="none";    
         }else{
@@ -424,7 +441,7 @@ function bloquear(id){
     segundos = tmp.getSeconds();
     HoraFin = hora + ":" + minutos + ":" + segundos;
     timeStop = new Date();
-    var timeReal, costo, resta = true;
+    var timeReal, costo, resta = true, activoMonopatin = false;
     timeStop = timeStop.getTime();
     tmp = topCinco[id];
     timeReal = ((timeStop - timeStart)/1000);

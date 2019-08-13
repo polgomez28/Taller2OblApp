@@ -142,8 +142,8 @@
             </ons-toolbar>
             <div style="text-align: center; margin-top: 30px;">
                 <p>Ingresar tarjeta al sistema</p>
-                <ons-input id="txtNroTarjeta" modifier="underbar" placeholder="Ingrese Tarjeta" float></ons-input>
-                <p></p>
+                <ons-input onchange="mostrarLogoCard()" id="txtNroTarjeta" modifier="underbar" placeholder="Ingrese Tarjeta" float></ons-input>
+                <p id="card"></p>
                 <p style="margin-top: 30px;">
                     <ons-button onclick="agregaTarjeta()">Cargar</ons-button>
                 </p>
@@ -184,6 +184,7 @@
                     <p style="margin-top: 30px;">
                         <ons-button onclick="actualizarSaldo()">Cargar</ons-button>
                     </p>
+                    <div id="respCargaSaldo"></div>
                 </div>
             </div>
         </ons-page>
