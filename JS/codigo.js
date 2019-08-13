@@ -45,7 +45,7 @@ window.fn.load = function(page) {
 
 var listaMono = [], topCinco = [], monActivos = {};
 var posicionOrigen, timeStart, timeStop, activoUser = false, FechaHistorico, HoraInicio, HoraFin, activoMonopatin = false;
-var posicionDestino;
+var posicionDestino, idMonAct;
 var pos = { lat: -34.397, lng: -56.18 };
 // FUNCION PARA REGISTRAR USUARIO
 function registro() {
@@ -328,37 +328,40 @@ function errorMonopatines(request) {
 function ubicarMon(pos) {
 
     var tmp = {}, contador = 0, distancia = 0;
-    for (i = 0; i < listaMono.length; i++) {
-        tmp = listaMono[i];
-        
-            lat2 = tmp.latitud;
-            lon2 = tmp.longitud;
-            Number.prototype.toRad = function () {
-                return this * Math.PI / 180;
-            }
+    if(activoMonopatin === false){
+        for (i = 0; i < listaMono.length; i++) {
+            tmp = listaMono[i];
             
-            var lat1 = pos.coords.latitude;
-            var lon1 = pos.coords.longitude;
-
-            var R = 6371; // km 
-
-            var x1 = lat2 - lat1;
-            var dLat = x1.toRad();
-            var x2 = lon2 - lon1;
-            var dLon = x2.toRad();
-            var a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-                Math.cos(lat1.toRad()) * Math.cos(lat2.toRad()) *
-                Math.sin(dLon / 2) * Math.sin(dLon / 2);
-            var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-            var d = R * c;
-
-        if (contador === 0){distancia = d;}
-        if (d <= distancia && contador < 5) {
-                topCinco[contador] = tmp;
-                contador++ 
+                lat2 = tmp.latitud;
+                lon2 = tmp.longitud;
+                Number.prototype.toRad = function () {
+                    return this * Math.PI / 180;
+                }
+                
+                var lat1 = pos.coords.latitude;
+                var lon1 = pos.coords.longitude;
+    
+                var R = 6371; // km 
+    
+                var x1 = lat2 - lat1;
+                var dLat = x1.toRad();
+                var x2 = lon2 - lon1;
+                var dLon = x2.toRad();
+                var a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                    Math.cos(lat1.toRad()) * Math.cos(lat2.toRad()) *
+                    Math.sin(dLon / 2) * Math.sin(dLon / 2);
+                var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+                var d = R * c;
+    
+            if (contador === 0){distancia = d;}
+            if (d <= distancia && contador < 5) {
+                    topCinco[contador] = tmp;
+                    contador++ 
+            }
+    
         }
-
     }
+    
 }
 // DESBLOQUEO MONOPATIN
 
@@ -376,9 +379,25 @@ function mapaNuevo(pos) {
 
     L.marker([pos.coords.latitude, pos.coords.longitude]).addTo(map)
         .bindPopup("Estas aquí!")
-    
-    //OBTENEMOS LONGITUD Y  LATITUD POR MONOPATINES
-    for(var i=0;i<topCinco.length;i++){
+    if(activoMonopatin){
+        var tmpActivo = topCinco[idMonAct];
+        var latitud = tmpActivo["latitud"];
+        var longitud = tmpActivo["longitud"];
+        var codigo = tmpActivo["codigo"];
+        
+        popup = "<p>Monopatin: " + codigo + "</p>" +
+                "<ons-button id='btnDesbloquear' onclick='desbloquear(" + idMonAct + ")'>" +
+                "Desbloquear" + "</ons-button>" +
+                "<ons-button id='btnBloquear' onclick='bloquear(" + idMonAct + ")' style='display: none; background: red;''>" +
+                "Bloquear" + "</ons-button>"
+        L.marker([latitud, longitud]).addTo(map)
+        .bindPopup(popup)
+        .openPopup();
+        document.getElementById("btnDesbloquear").style.display="none";
+        document.getElementById("btnBloquear").style.display="block";
+    }else{
+        //OBTENEMOS LONGITUD Y  LATITUD POR MONOPATINES
+        for(var i=0;i<topCinco.length;i++){
         tmpTop = topCinco[i];
         var latitud = tmpTop["latitud"];
         var longitud = tmpTop["longitud"];
@@ -391,11 +410,13 @@ function mapaNuevo(pos) {
         L.marker([latitud, longitud]).addTo(map)
         .bindPopup(popup);
     }
-    
+    }
 }
 function desbloquear(codigo){
     var token = sessionStorage.getItem("token");
     var idUser = sessionStorage.getItem("idUser");
+    idMonAct = codigo;
+    activoMonopatin = true;
     if (token !== "" && idUser !== "") {
         $.ajax({
             url: "http://oransh.develotion.com/tarjetas.php",
@@ -423,7 +444,7 @@ function verificarTarjeta(response){
             HoraInicio = hora + ":" + minutos + ":" + segundos;
             timeStart = new Date();
             timeStart = timeStart.getTime();
-            activoMonopatin = true;
+            
             document.getElementById("btnBloquear").style.display="block";
             document.getElementById("btnDesbloquear").style.display="none";    
         }else{
