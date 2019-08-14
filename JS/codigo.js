@@ -4,7 +4,8 @@ $(document).ready(function(){
     db.transaction(function (tx){
     tx.executeSql("Create table if not exists historial (Usuario string, Fecha string, HoraInicio string, HoraFin string, Duracion integer, Costo integer)");
 });
-$("#btnRegistro").click(registro);
+    document.getElementById("txtInfo").style.display="none"
+    $("#btnRegistro").click(registro);
     $("#contenedorLogin").show();
     $("#contenedorRegistro").hide();
     $("#btnIrRegistro").click(irALogin);
@@ -111,7 +112,27 @@ function loginOK(response) {
     var user = sessionStorage.getItem("NombreUsu");
     ons.notification.alert("Bienvenida " + user + "!");
     document.getElementById("btnlogout").style.display="block"
+    document.getElementById("contLog").style.display="none"
+    document.getElementById("txtInfo").style.display="block"
     obtenerSaldo();
+    panelInfo();
+
+}
+function panelInfo(){
+    $("#txtInfo").append("<p><h2>Bienvenidos a Mandarine Monopatín!</h2></p>");
+    $("#txtInfo").append("<p>Mandarine es un prototipo funcional de una aplicación</p>");
+    $("#txtInfo").append("<p>para desbloqueo y gestión de alquileres de monopatines eléctricos.</p>");
+    $("#txtInfo").append("<p>Enrte sus funcionalidades están: Registro de usuario, inicio sesión,</p>");
+    $("#txtInfo").append("<p>ingreso de tarjeta de crédito (prueba ingresar como primeros nros 4, 5 o 6 ;) ).</p>");
+    $("#txtInfo").append("<p>consulta de saldo, carga de saldo.</p>");
+    $("#txtInfo").append("<p>Mapa el cual muestra los 5 monopatines más cercanos a tu ubicación y que tengan carga.</p>");
+    $("#txtInfo").append("<p>Podrás desbloquear monopatín y se iniciara el cargo del monopatín, $46 por baja de bandera</p>");
+    $("#txtInfo").append("<p>y $2 por segundo, al darle a bloquear te informa del coosto insumido.</p>");
+    $("#txtInfo").append("<p>- Si el costo supera tu saldo disponible quedarás inhabilitado para utilizar el servicio</p>");
+    $("#txtInfo").append("<p>hasta que vuelvas a cargar saldo y quedes en positivo, mientras no se cargara ni el mapa</p>");
+    $("#txtInfo").append("<p>- Puedes consultar tu historico de viajes en la opción Historial</p>");
+    $("#txtInfo").append("<p>Gracias por probar la app! y espero tus comentarios :D </p>");
+    $("#txtInfo").append("<img src='/img/icon.png' alt='logo'>")
 }
 function errorLog(request) {
     ons.notification.alert(request.responseJSON.mensaje);
@@ -372,6 +393,7 @@ function mostrarMapa() {
 }
 function mapaNuevo(pos) {
     ubicarMon(pos);
+    document.getElementById("circularMapa").style.display="none"
     var map = L.map('map').setView([pos.coords.latitude, pos.coords.longitude], 13);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'

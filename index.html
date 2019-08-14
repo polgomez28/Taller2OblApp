@@ -59,17 +59,17 @@
             <ons-page>
                 <div id="contLog" style="text-align: center; margin-top: 30px;">
                     <p>
-                        <ons-input id="txtUserLog" modifier="underbar" placeholder="Username" float></ons-input>
+                        <ons-input id="txtUserLog" modifier="underbar" placeholder="Usuario" float></ons-input>
                     </p>
                     <p>
-                        <ons-input id="txtPasslog" modifier="underbar" type="password" placeholder="Password" float>
+                        <ons-input id="txtPasslog" modifier="underbar" type="password" placeholder="Contraseña" float>
                         </ons-input>
                     </p>
                     <p style="margin-top: 30px;">
-                        <ons-button onclick="login()">Sign in</ons-button>
+                        <ons-button onclick="login()">Ingresar</ons-button>
                     </p>
                 </div>
-                <div id="txtInfo" class="info"></div>
+                <div id="txtInfo" style="text-align: center; margin-top: 30px;"></div>
             </ons-page>
         </ons-page>
     </template>
@@ -125,6 +125,7 @@
                         width: 100%;
                     }
             </style>
+            <ons-progress-circular indeterminate id="circularMapa" class="center"></ons-progress-circular>
             <div id="map"></div>
         </ons-page>
     </template>
