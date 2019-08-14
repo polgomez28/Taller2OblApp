@@ -132,7 +132,7 @@ function panelInfo(){
     $("#txtInfo").append("<p>hasta que vuelvas a cargar saldo y quedes en positivo, mientras no se cargara ni el mapa</p>");
     $("#txtInfo").append("<p>- Puedes consultar tu historico de viajes en la opción Historial</p>");
     $("#txtInfo").append("<p>Gracias por probar la app! y espero tus comentarios :D </p>");
-    $("#txtInfo").append("<img src='/img/icon.png' alt='logo'>")
+    $("#txtInfo").append("<img src='img/icon.png' alt='logo'>")
 }
 function errorLog(request) {
     ons.notification.alert(request.responseJSON.mensaje);
@@ -152,13 +152,13 @@ function mostrarLogoCard(){
     var visa = card.substr(0,1);
     if(amex === "4"){
         $("#card").html("");
-        $("#card").append("<img src='/img/american-express.png' alt=''>");
+        $("#card").append("<img src='img/american-express.png' alt=''>");
     }else if(master === "5"){
         $("#card").html("");
-        $("#card").append("<img src='/img/mastercard.png' alt=''>");
+        $("#card").append("<img src='img/mastercard.png' alt=''>");
     }else if(visa === "6"){
         $("#card").html("");
-        $("#card").append("<img src='/img/visa.png' alt=''>");
+        $("#card").append("<img src='img/visa.png' alt=''>");
     }
 }
 function agregaTarjeta() {

@@ -3,7 +3,7 @@
         xmlns:gap   = "http://phonegap.com/ns/1.0"
         id          = "uy.com.apps.tallerOblPGomezJulio2019"
         versionCode = "10"
-        version     = "1.0.0" >
+        version     = "1.1.0" >
 
     <name>Obligatorio Taller Julio 2019</name> <!--nombre de la aplicacion-->
 
@@ -31,7 +31,7 @@
 
     <platform name="android">
         <allow-intent href="market:*" />
-        <splash src="splash.jpg"/>
+        <splash src="splash.png"/>
         <icon src="icon.png"/>
      </platform>
     
