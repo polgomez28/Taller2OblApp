@@ -44,7 +44,7 @@ window.fn.load = function(page) {
   
 };
 
-var listaMono = [], topCinco = [], monActivos = {};
+var listaMono = [], monDist = [], monActivos = {}, nuevoTop5 = [];
 var posicionOrigen, timeStart, timeStop, activoUser = false, FechaHistorico, HoraInicio, HoraFin, activoMonopatin = false;
 var posicionDestino, idMonAct;
 var pos = { lat: -34.397, lng: -56.18 };
@@ -373,21 +373,39 @@ function ubicarMon(pos) {
                     Math.sin(dLon / 2) * Math.sin(dLon / 2);
                 var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
                 var d = R * c;
-    
-            if (contador === 0){distancia = d;}
-            if (d <= distancia && contador < 5) {
-                    topCinco[contador] = tmp;
-                    contador++ 
+                // AGREGAMOS EL ELEMENTO DISTANCIA A LOS MONOPATINES
+                tmp[tmp.length] = d;
+                monDist[i] = tmp;
+        }
+        var distanciaM=[];
+        
+        //GENERO ARRAY INDEXADO UNICAMENTE CON LAS DISTANCIAS
+        for(i=0;i<monDist.length;i++){
+            tmp = monDist[i];
+            distanciaM[i] = tmp['undefined'];
+        }
+        // ORDENO LAS DISTANCIAS DE MENOR A MAYOR CON SORT
+        distanciaM.sort(funcionDeComparacion);
+        // GENERO LA LÓGICA PARA POR CADA DISTANCIA ENCONTRAR SU MONOPATÍN
+        // Y GENERO UN NUEVO ARRAY CON LOS 5 PRIMEROS PREVIAMENTE ORDENADOS DE MENOR A MAYOR
+        var salir = false;
+        var indice = 0;
+        while(!salir && indice <= distanciaM.length - 1){
+            var tmpDist = distanciaM[indice];
+            for(i=0;i<monDist.length;i++){
+                tmp = monDist[i];
+                if(tmpDist === tmp["undefined"]){
+                    nuevoTop5[indice] = tmp;
+                }
             }
-    
+            indice++
+            if(indice>4){salir = true;}
         }
     }
     
 }
-// DESBLOQUEO MONOPATIN
-
+function funcionDeComparacion (elem1, elem2) { return elem1 - elem2;}
 // INICIA MAPA
-
 function mostrarMapa() {
     navigator.geolocation.getCurrentPosition(mapaNuevo);
 }
@@ -402,7 +420,7 @@ function mapaNuevo(pos) {
     L.marker([pos.coords.latitude, pos.coords.longitude]).addTo(map)
         .bindPopup("Estas aquí!")
     if(activoMonopatin){
-        var tmpActivo = topCinco[idMonAct];
+        var tmpActivo = nuevoTop5[idMonAct];
         var latitud = tmpActivo["latitud"];
         var longitud = tmpActivo["longitud"];
         var codigo = tmpActivo["codigo"];
@@ -419,8 +437,8 @@ function mapaNuevo(pos) {
         document.getElementById("btnBloquear").style.display="block";
     }else{
         //OBTENEMOS LONGITUD Y  LATITUD POR MONOPATINES
-        for(var i=0;i<topCinco.length;i++){
-        tmpTop = topCinco[i];
+        for(var i=0;i<nuevoTop5.length;i++){
+        tmpTop = nuevoTop5[i];
         var latitud = tmpTop["latitud"];
         var longitud = tmpTop["longitud"];
         var codigo = tmpTop["codigo"];
